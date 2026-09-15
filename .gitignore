@@ -4,3 +4,5 @@ node_modules/
 server.new.mjs
 public/index.new.html
 interior_preview.png
+.module-cache/
+macos/Worldwalker

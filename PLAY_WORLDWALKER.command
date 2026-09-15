@@ -9,4 +9,8 @@ if ! curl -fsS --noproxy 127.0.0.1 "http://127.0.0.1:${PORT}/api/health" >/dev/n
     sleep 0.1
   done
 fi
-open -a "Brave Browser" "http://127.0.0.1:${PORT}"
+if [[ -d "/Applications/Worldwalker.app" ]]; then
+  open "/Applications/Worldwalker.app"
+else
+  open -a "Brave Browser" "http://127.0.0.1:${PORT}"
+fi

@@ -15,6 +15,7 @@
     "test:system": "node scripts/system-contract.mjs",
     "test:uplift": "node scripts/uplift-contract.mjs",
     "smoke": "node scripts/smoke.mjs",
+    "build:app": "zsh scripts/build-app.sh",
     "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure && npm run test:system && npm run test:uplift"
   },
   "engines": {
