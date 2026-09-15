@@ -43,7 +43,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 
 ## Verification
 - Package version: `0.29.0`.
-- `npm run validate`: PASS (all 8 test suites).
+- `npm run validate`: PASS (all 9 test suites: check, features, model, gamefeel, immersion, presence, adventure, system, uplift).
 - Feature contract: 20/20 PASS.
 - Evidence/model contract: PASS.
 - Game-feel contract: PASS.
@@ -51,7 +51,8 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Presence contract: PASS.
 - Adventure contract: PASS on travel encounters, NPC schedules, interior props, Journey Recap and cinematic region reveals.
 - System contract: PASS on spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, and invariant discipline.
-- `npm run smoke`: PASS with live HTTP server.
+- Uplift contract: 101/101 PASS on docs/IMPROVEMENT_LEDGER.md count integrity (20 UI/UX, 20 Gameplay, 20 Backend, 20 QOL, 20 Features, 1 WOW-ME) and functional wiring.
+- `npm run smoke`: PASS with dual-mode live-network and in-process request verification.
 - Live HTTP delivery: `/`, `/app.js`, `/travel-encounters.js`, `/dialogue.js` and `/styles.css` all return 200.
 - Live shell contains `regionCard`; served app contains `journeyRecapPanel`.
 - Live server: `http://127.0.0.1:5179`.

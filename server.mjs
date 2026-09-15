@@ -374,7 +374,7 @@ async function serveStatic(req, res, url) {
 }
 
 const startTime = Date.now();
-const server = http.createServer(async (req, res) => {
+export async function handleRequest(req, res) {
   try {
     const url = new URL(req.url, 'http://localhost');
     if (req.method === 'GET' && url.pathname === '/api/snapshot') {
@@ -411,7 +411,14 @@ const server = http.createServer(async (req, res) => {
   } catch (err) {
     sendJson(res, { error: 'server-error', detail: String(err?.message || err) }, 500);
   }
-});
+}
 
-server.listen(PORT, HOST, () => console.log(`WORLDWALKER http://${HOST}:${PORT}`));
+export const server = http.createServer(handleRequest);
+export { snapshot };
+
+const isMain = Boolean(process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url));
+if (isMain) {
+  server.listen(PORT, HOST, () => console.log(`WORLDWALKER http://${HOST}:${PORT}`));
+}
+
 
