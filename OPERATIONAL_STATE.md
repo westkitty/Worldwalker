@@ -1,14 +1,15 @@
 # Operational State: Worldwalker
 
 Project ID: `worldwalker`
-State revision: 30
+State revision: 31
 Baseline: `0.29.0`
-State: `production-runtime-preserved-candidate-bank-rejected`
+State: `production-runtime-preserved-launcher-verified`
 
 ## Purpose
 Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real project ecosystem. Real project state drives geography, artifacts, quests and environmental condition without silently mutating source projects.
 
 ## Current release (v0.29.0)
+- **macOS Launcher Refresh**: `scripts/build-app.sh` now rebuilds `/Applications/Worldwalker.app`, ad-hoc signs the complete bundle, clears quarantine metadata, refreshes LaunchServices, replaces the existing Worldwalker Dock tile, and restarts Dock so the installed icon launches the current `/Users/andrew/Worldwalker` checkout.
 - **Candidate Asset Bank Review**: A 362-asset source-plan build was audited against the verified production runtime. 91 filenames collide with established production artwork and remain untouched; the 271 generated-only files failed representative visual QA and were rejected from the repository runtime. Their source bank remains in Google Drive under `macbook/Worldwalker`. Production remains at the verified 104-PNG runtime baseline.
 - **Flagship WOW-01**: The **Grand Cartographic Expedition Atlas & Live Ecosystem Orrery** is integrated into the Worldwalker Atlas (`1` / Map dock / waystones). Includes topographic elevation contours, interactive Walking Route Surveyor (`calculateWalkingRoute`) computing real distances, leagues, footsteps, and river navigation, and the cosmic **Ecosystem Orrery** visualizing the 5 source projects orbiting the Central Meridian with live Git branch/commit telemetry and condition spectra.
 - **Gameplay Traversal & Navigation**: Added river stepping stones for pedestrian crossings, two-way river cable raft ferries (`RIVER_FERRY`), directional overworld signposts (`OVERWORLD_SIGNPOSTS`), settlement bulletin boards (`SETTLEMENT_BULLETINS`), and a high-speed sprint-hop stride dash.
@@ -41,8 +42,10 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 13. Road encounters never mutate source state and never manufacture project completion.
 14. Waystone rest is memory/navigation only; it grants no fake stats, XP or productivity score.
 15. Reduced-motion, keyboard, touch and controller gameplay paths remain available.
+16. The macOS Dock launcher targets `/Applications/Worldwalker.app`; its wrapper launches the current `/Users/andrew/Worldwalker/server.mjs` over loopback and the rebuilt bundle remains validly ad-hoc signed.
 
 ## Verification
+- macOS launcher end-to-end: PASS — exactly one Dock entry targets `file:///Applications/Worldwalker.app/` with bundle ID `com.westkitty.worldwalker`; bundle signature verifies; installed icon hash matches `macos/Worldwalker.icns`; cold launch starts the app wrapper and `/opt/homebrew/bin/node /Users/andrew/Worldwalker/server.mjs`; `/api/health` returns Worldwalker `0.29.0`.
 - Candidate asset-bank review: PASS — all 362 source-plan assets accounted for; 271 generated-only candidates rejected from production, 91 production collisions preserved, active runtime unchanged at 104 PNGs.
 - Representative visual QA: FAIL for production promotion — `player_downleft_0.png` is materially lower-detail than the established traveler, and `portrait_hero_neutral_blink.png` is identity/style-inconsistent with the established hero portrait.
 - Production validation after candidate rejection: `npm run validate` PASS, `npm run smoke` PASS, and `git diff --check` PASS.

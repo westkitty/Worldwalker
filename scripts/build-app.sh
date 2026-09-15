@@ -1,25 +1,28 @@
 #!/bin/zsh
-set -e
+set -euo pipefail
 cd "${0:A:h}/.."
+APP="/Applications/Worldwalker.app"
 
-echo "==> Building Worldwalker macOS Icon..."
+echo "==> Building Worldwalker macOS icon..."
 python3 scripts/build-icon.py macos/Worldwalker.icns
 
-echo "==> Compiling Swift Wrapper..."
+echo "==> Compiling Swift wrapper..."
 mkdir -p .module-cache
 swiftc -O -module-cache-path .module-cache macos/WorldwalkerWrapper.swift -o macos/Worldwalker
 
-echo "==> Assembling /Applications/Worldwalker.app..."
-mkdir -p /Applications/Worldwalker.app/Contents/MacOS /Applications/Worldwalker.app/Contents/Resources
-cp macos/Info.plist /Applications/Worldwalker.app/Contents/Info.plist
-cp macos/Worldwalker /Applications/Worldwalker.app/Contents/MacOS/Worldwalker
-chmod +x /Applications/Worldwalker.app/Contents/MacOS/Worldwalker
-cp macos/Worldwalker.icns /Applications/Worldwalker.app/Contents/Resources/Worldwalker.icns
+echo "==> Assembling $APP..."
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp macos/Info.plist "$APP/Contents/Info.plist"
+cp macos/Worldwalker "$APP/Contents/MacOS/Worldwalker"
+chmod +x "$APP/Contents/MacOS/Worldwalker"
+cp macos/Worldwalker.icns "$APP/Contents/Resources/Worldwalker.icns"
+/usr/bin/codesign --force --deep --sign - "$APP"
+/usr/bin/xattr -dr com.apple.quarantine "$APP" 2>/dev/null || true
 
-echo "==> Ensuring Worldwalker is in macOS Dock..."
-if [[ -x "/opt/homebrew/bin/dockutil" ]]; then
-  /opt/homebrew/bin/dockutil --add "/Applications/Worldwalker.app" --replacing "Worldwalker" 2>/dev/null || \
-  /opt/homebrew/bin/dockutil --add "/Applications/Worldwalker.app"
-fi
+echo "==> Refreshing LaunchServices and Dock..."
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -f "$APP"
+/opt/homebrew/bin/dockutil --add "$APP" --replacing "Worldwalker" --no-restart 2>/dev/null || /opt/homebrew/bin/dockutil --add "$APP" --no-restart
+touch "$APP"
+killall Dock 2>/dev/null || true
 
-echo "==> Worldwalker.app ready and added to Dock!"
+echo "==> Worldwalker.app rebuilt, signed, registered, and pinned to Dock."
