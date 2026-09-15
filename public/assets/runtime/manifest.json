@@ -1,0 +1,137 @@
+{
+  "version": 1,
+  "player": {
+    "down": [
+      "player_down_0.png",
+      "player_down_1.png",
+      "player_down_2.png"
+    ],
+    "right": [
+      "player_right_0.png",
+      "player_right_1.png",
+      "player_right_2.png"
+    ],
+    "up": [
+      "player_up_0.png",
+      "player_up_1.png",
+      "player_up_2.png"
+    ],
+    "left": [
+      "player_left_0.png",
+      "player_left_1.png",
+      "player_left_2.png"
+    ]
+  },
+  "terrain": {
+    "grass": "terrain_grass.png",
+    "grass_flowers": "terrain_grass_flowers.png",
+    "dirt": "terrain_dirt.png",
+    "stone": "terrain_stone.png",
+    "forest": "terrain_forest.png",
+    "water": "terrain_water.png",
+    "shore": "terrain_shore.png",
+    "snow": "terrain_snow.png",
+    "sand": "terrain_sand.png"
+  },
+  "landmarks": {
+    "starsilk": "landmark_starsilk.png",
+    "screen_weasels": "landmark_screen_weasels.png",
+    "atlas": "landmark_atlas.png",
+    "dash": "landmark_dash.png",
+    "orbital": "landmark_orbital.png"
+  },
+  "npcs": {
+    "archivist": "npc_archivist.png",
+    "engineer": "npc_engineer.png",
+    "cartographer": "npc_cartographer.png",
+    "merchant": "npc_merchant.png",
+    "station_keeper": "npc_station_keeper.png",
+    "wanderer": "npc_wanderer.png"
+  },
+  "heroPortraits": {
+    "neutral": "portrait_hero_neutral.png",
+    "smile": "portrait_hero_smile.png",
+    "worried": "portrait_hero_worried.png",
+    "thinking": "portrait_hero_thinking.png"
+  },
+  "npcPortraits": {
+    "archivist": "portrait_archivist.png",
+    "engineer": "portrait_engineer.png",
+    "cartographer": "portrait_cartographer.png",
+    "merchant": "portrait_merchant.png",
+    "station_keeper": "portrait_station_keeper.png",
+    "wanderer": "portrait_wanderer.png",
+    "harbor_keeper": "portrait_harbor_keeper.png",
+    "chronicler": "portrait_chronicler.png"
+  },
+  "ui": {
+    "dialogue": "ui_dialogue.png",
+    "panel": "ui_panel.png",
+    "scroll": "ui_scroll.png",
+    "minimap": "ui_minimap.png"
+  },
+  "icons": {
+    "book": "icon_book.png",
+    "map": "icon_map.png",
+    "compass": "icon_compass.png",
+    "crystal": "icon_crystal.png",
+    "key": "icon_key.png",
+    "lantern": "icon_lantern.png",
+    "evidence": "icon_evidence.png",
+    "verified": "icon_verified.png",
+    "blocked": "icon_blocked.png",
+    "unknown": "icon_unknown.png"
+  },
+  "fx": {
+    "torch": "fx_torch.png",
+    "crystal_glow": "fx_crystal_glow.png",
+    "sparkle": "fx_sparkle.png",
+    "waystone": "fx_waystone.png",
+    "dust": "fx_dust.png"
+  },
+  "settlements": [
+    "settlement_arch.png",
+    "settlement_beacon.png",
+    "settlement_cottage.png",
+    "settlement_crystal.png",
+    "settlement_desert_ruin.png",
+    "settlement_docks.png",
+    "settlement_floating_ruin.png",
+    "settlement_garden_ruin.png",
+    "settlement_gate.png",
+    "settlement_harbor.png",
+    "settlement_inn.png",
+    "settlement_lighthouse.png",
+    "settlement_observatory.png",
+    "settlement_pier.png",
+    "settlement_shrine.png",
+    "settlement_snow_lodge.png",
+    "settlement_statue.png",
+    "settlement_swamp.png",
+    "settlement_tent.png",
+    "settlement_tower.png",
+    "settlement_watchtower.png",
+    "settlement_windmill.png",
+    "settlement_workshop.png"
+  ],
+  "interiors": {
+    "floor_stone": "interior_floor_stone.png",
+    "floor_gold": "interior_floor_gold.png",
+    "floor_wood": "interior_floor_wood.png",
+    "rug_green": "interior_rug_green.png",
+    "rug_blue": "interior_rug_blue.png",
+    "wall_panel": "interior_wall_panel.png",
+    "bookshelf": "interior_bookshelf.png",
+    "bookcase": "interior_bookcase.png",
+    "table": "interior_table.png",
+    "desk": "interior_desk.png",
+    "fireplace": "interior_fireplace.png",
+    "globe": "interior_globe.png",
+    "telescope": "interior_telescope.png",
+    "door": "interior_door.png",
+    "crystal_blue": "interior_crystal_blue.png",
+    "crystal_purple": "interior_crystal_purple.png",
+    "market_stall": "interior_market_stall.png",
+    "lantern": "interior_lantern.png"
+  }
+}

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { investigationStage, expeditionState, sourceChanges } from '../public/model.js';
+const p={id:'atlas',name:'Atlas',digest:'new',condition:'open',git:{commits:[{subject:'Changed the map'}]},artifacts:[]};
+const q={status:'open',archetype:'mapping'};
+const base={visited:{},discoveredArtifacts:{},stationVisits:{},commitReads:{},expeditions:{}};
+assert.equal(investigationStage(q,p,base),'RUMORED');
+const visited={...base,visited:{atlas:true}};assert.equal(investigationStage(q,p,visited),'CONFIRMED');
+const evidence={...visited,stationVisits:{atlas:{state:true,purpose:true}}};assert.equal(investigationStage(q,p,evidence),'EVIDENCE');
+assert.equal(investigationStage({...q,status:'sealed'},p,base),'VERIFIED');
+const rel=[{id:'a--b',a:'a',b:'b'}];assert.equal(expeditionState(rel,{visited:{a:true,b:false}})['a--b'].unlocked,false);assert.equal(expeditionState(rel,{visited:{a:true,b:true}})['a--b'].unlocked,true);
+assert.equal(sourceChanges([p],{atlas:'old'}).length,1);assert.equal(sourceChanges([p],{atlas:'new'}).length,0);
+console.log('MODEL CONTRACT PASS: evidence ladder, archetype evidence, expeditions, WHAT CHANGED');

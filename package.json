@@ -1,0 +1,21 @@
+{
+  "name": "worldwalker",
+  "version": "0.28.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs && node --check public/world-data.js && node --check public/model.js && node --check public/assets.js && node --check public/settlements.js && node --check public/settlement-render.js && node --check public/interior-render.js && node --check public/audio.js && node --check public/camera.js && node --check public/world-echoes.js && node --check public/dialogue.js && node --check public/travel-encounters.js && node --check public/render.js && node --check public/app.js && node --check public/art-gallery.js",
+    "test:features": "node scripts/feature-contract.mjs",
+    "test:model": "node scripts/model-contract.mjs",
+    "test:gamefeel": "node scripts/gamefeel-contract.mjs",
+    "test:immersion": "node scripts/immersion-contract.mjs",
+    "test:presence": "node scripts/presence-contract.mjs",
+    "test:adventure": "node scripts/adventure-contract.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

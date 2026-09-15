@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+*.log
+server.new.mjs
+public/index.new.html
+interior_preview.png
