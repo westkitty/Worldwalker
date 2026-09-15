@@ -60,6 +60,9 @@ function importSave(jsonStr){
     const candidate=parsed.state||parsed;
     if(!candidate||typeof candidate!=='object'||!candidate.player)throw new Error('invalid');
     state=normalizeState(candidate);
+    setMuted(!!state.audioMuted);
+    setVolume(state.masterVolume);
+    updateAudioButton();
     save();
     camera.x=state.player.x;camera.y=state.player.y;
     logEvent('shift','Save restored from backup',`Version ${state.version}`);
@@ -510,12 +513,34 @@ function journalPanel(filter='all',query=''){
       `).join(''):'<p>No memories match your query.</p>'}
     </div>
   `);
-  body.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>journalPanel(b.dataset.filter,query));
+  body.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>journalPanel(b.dataset.filter,s?.value||''));
   const s=$('#journalSearch');
   if(s){
-    s.oninput=e=>journalPanel(filter,e.target.value);
-    s.focus();
-    s.setSelectionRange(s.value.length,s.value.length);
+    s.oninput=e=>{
+      let filtered=[...state.journal].reverse();
+      if(filter!=='all'){
+        if(filter==='discoveries')filtered=filtered.filter(x=>['artifact','manual','secret'].includes(x.kind));
+        else if(filter==='shifts')filtered=filtered.filter(x=>x.kind==='shift');
+        else if(filter==='waystones')filtered=filtered.filter(x=>x.kind==='waystone');
+        else if(filter==='encounters')filtered=filtered.filter(x=>x.kind==='encounter');
+      }
+      if(e.target.value.trim()){
+        const term=e.target.value.toLowerCase().trim();
+        filtered=filtered.filter(x=>(x.title&&x.title.toLowerCase().includes(term))||(x.detail&&x.detail.toLowerCase().includes(term)));
+      }
+      const tl=body.querySelector('.journal-timeline');
+      if(tl){
+        tl.innerHTML=filtered.length?filtered.slice(0,80).map(x=>`
+          <div class="event journal-event">
+            <i>${icons[x.kind]||'·'}</i>
+            <b>${esc(x.title)}</b>
+            <small>${new Date(x.at).toLocaleString()}${x.projectId?` · ${esc(projectOf(x.projectId)?.name||x.projectId)}`:''}</small>
+            ${x.detail?`<p>${esc(x.detail)}</p>`:''}
+          </div>
+        `).join(''):'<p>No memories match your query.</p>';
+      }
+    };
+    if(query){s.focus();s.setSelectionRange(s.value.length,s.value.length)}
   }
   const mBtn=$('#openMilestones');if(mBtn)mBtn.onclick=milestonesPanel;
 }
