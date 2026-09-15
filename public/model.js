@@ -72,8 +72,8 @@ export function calculateWalkingRoute(start, target){
   const segments=Math.min(32,Math.max(6,Math.round(dist*1.5)));
   for(let i=0;i<=segments;i++){
     const t=i/segments;
-    const curve=Math.sin(t*Math.PI)*(dist>20?3.2:1.2);
-    const nx=-dy/dist, ny=dx/dist;
+    const curve=dist>0.001?Math.sin(t*Math.PI)*(dist>20?3.2:1.2):0;
+    const nx=dist>0.001?-dy/dist:0, ny=dist>0.001?dx/dist:0;
     points.push({
       x:start.x+dx*t+nx*curve,
       y:start.y+dy*t+ny*curve

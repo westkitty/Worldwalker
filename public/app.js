@@ -6,12 +6,12 @@ import { interiorBlocked } from './interior-render.js';
 import { createCamera, updateCamera, focusCamera, bumpCamera } from './camera.js';
 import { initAudio, audioTick, movementAudio, stinger, toggleMuted, setMuted, isMuted, setVolume, getVolume, previewTheme, THEMES } from './audio.js';
 import { WORLD_ECHOES, echoNodes } from './world-echoes.js';
-import { showDialogue, advanceDialogue, closeDialogue, isDialogueOpen } from './dialogue.js';
+import { showDialogue, advanceDialogue, closeDialogue, isDialogueOpen, selectDialogueChoice, setDialogueSpeed } from './dialogue.js';
 import { encounterFor } from './travel-encounters.js';
 
 const $=s=>document.querySelector(s);
 const canvas=$('#world'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
-const panel=$('#panel'),body=$('#panelBody'),prompt=$('#prompt'),place=$('#place'),toast=$('#toast'),transitionEl=$('#transition'),regionCard=$('#regionCard'),questHud=$('#questHud');
+const panel=$('#panel'),body=$('#panelBody'),prompt=$('#prompt'),place=$('#place'),toast=$('#toast'),transitionEl=$('#transition'),regionCard=$('#regionCard'),questHud=$('#questHud'),weatherBadge=$('#weatherBadge');
 const SAVE_KEY='worldwalker-save-v2';
 const DEFAULT_PLAYER={x:47,y:59,ix:15,iy:18,cx:4,cy:5,dir:4,steps:0,vx:0,vy:0,hop:0};
 const DEFAULT_STATE={version:6,mode:'world',player:DEFAULT_PLAYER,visited:{},arrivals:{},waystones:{},echoes:{},journal:[],seenShifts:{},encounters:{},propsSeen:{},travelMeters:0,nextEncounterAt:24,trackedQuest:null,audioMuted:false,masterVolume:0.85,compassVisible:true,activePins:[],completedMilestones:{},toastHistory:[],discoveredArtifacts:{},manualPages:{},stationVisits:{},commitReads:{},secrets:{},expeditions:{},lastDigests:{},lastConditions:{},interiorProjectId:null};
@@ -204,7 +204,34 @@ function update(dt){
   if(state.player.steps%90<3)save();
   const targets=interactionTargets(game),candidate=targets[0];const limit=state.mode==='world'?(candidate?.type==='project'?5.1:1.75):2.1;near=candidate&&candidate.distance<=limit?candidate:null;
   prompt.classList.toggle('hidden',!near);if(near){prompt.querySelector('b').textContent=near.type==='traversal'?'C':(near.type==='signpost'?'READ':(near.type==='ferry'?'BOARD':'ENTER'));prompt.querySelector('span').textContent=near.label||near.title||near.type.toUpperCase()}
-  place.textContent=locationLabel();updateQuestHud();checkRegionArrival();updateCamera(camera,game,dt);
+  place.textContent=locationLabel();updateWeatherBadge();updateDiagnostics(dt);updateQuestHud();checkRegionArrival();updateCamera(camera,game,dt);
+}
+let fpsSmoothed=60;
+function updateWeatherBadge(){
+  if(!weatherBadge)return;
+  if(state.mode==='chronicle'){
+    weatherBadge.textContent='ATMOSPHERE: TEMPORAL STATIC';
+    return;
+  }
+  if(state.mode==='interior'){
+    const p=projectOf(state.interiorProjectId);
+    weatherBadge.textContent=`SHELTER: ${p?.interior?.toUpperCase()||'INTERIOR'}`;
+    return;
+  }
+  const cp=currentProject();
+  const cond=(cp?.condition||'calm').toUpperCase();
+  weatherBadge.textContent=`ATMOSPHERE: ${cond}`;
+}
+function updateDiagnostics(dt){
+  const f=$('#f3Hud');
+  if(!f||f.classList.contains('hidden'))return;
+  if(dt>0){const curFps=1/dt;fpsSmoothed=fpsSmoothed*0.9+curFps*0.1}
+  const pos=state.mode==='interior'
+    ?`POS: (${state.player.ix}, ${state.player.iy}) [INTERIOR]`
+    :state.mode==='chronicle'
+      ?`POS: (${state.player.cx}, ${state.player.cy}) [CHRONICLE]`
+      :`POS: (${state.player.x.toFixed(1)}, ${state.player.y.toFixed(1)}) [WORLD]`;
+  f.innerHTML=`<b>DIAGNOSTICS (F3)</b><span>${Math.round(fpsSmoothed)} FPS · ${(dt*1000).toFixed(1)}ms</span><span>${pos}</span><span>STEPS: ${state.player.steps} · PINS: ${(state.activePins||[]).length}</span><span>WORLDWALKER v0.29.0</span>`;
 }
 function locationLabel(){if(state.mode==='chronicle')return'THE CHRONICLE';if(state.mode==='interior')return(projectOf(state.interiorProjectId)?.interior||'INTERIOR').toUpperCase();return(currentProject()?.name||'THE CROSSROADS').toUpperCase()}
 function loop(t){if(!running)return;now=t;const dt=Math.min(.05,(t-last)/1000);last=t;update(dt);if(state.mode==='world')renderWorld(game);else if(state.mode==='interior')renderInterior(game);else renderChronicle(game);requestAnimationFrame(loop)}
@@ -243,15 +270,17 @@ function signpostPanel(s){
   });
 }
 function bulletinPanel(b){
-  const notices=b.bulletin?.lines||['No active notices posted.'];
+  const bulletin=b.bulletin||(b.project?SETTLEMENT_BULLETINS[b.project.id]:null);
+  const notices=bulletin?.lines||['No active notices posted.'];
   showDialogue({
-    speaker:b.title||'Settlement Bulletin',
+    speaker:b.title||bulletin?.title||'Settlement Bulletin',
     portrait:runtimeAsset('portrait_hero_neutral.png'),
     lines:[`REGIONAL BULLETINS · ${b.project?.name?.toUpperCase()||''}`,...notices]
   });
 }
 function ferryPanel(f){
-  const destX=f.to.x, destName=destX>38?'East Bank':'West Bank';
+  const to=f.to||(f.side==='west'?RIVER_FERRY.east:RIVER_FERRY.west);
+  const destX=to.x, destName=destX>38?'East Bank':'West Bank';
   showDialogue({
     speaker:'River Ferry Cable Raft',
     portrait:runtimeAsset('portrait_wanderer.png'),
@@ -261,8 +290,8 @@ function ferryPanel(f){
         label:`CROSS TO ${destName.toUpperCase()}`,
         action:()=>{
           cinematic('RIVER FERRY',`CROSSING TO ${destName.toUpperCase()}`,()=>{
-            state.player.x=f.to.x;state.player.y=f.to.y;
-            camera.x=f.to.x;camera.y=f.to.y;
+            state.player.x=to.x;state.player.y=to.y;
+            camera.x=to.x;camera.y=to.y;
             stinger('enter');save();
             notify(`Crossed river to ${destName}.`);
           });
@@ -603,7 +632,7 @@ function mapPanel(mode=null){
   let surveyLine='';
   let surveyInfoHtml='';
   if(currentAtlasMode==='surveyor'){
-    const target=surveyTarget?projectOf(surveyTarget):projects.find(p=>p.id!==state.interiorProjectId)||projects[0];
+    const target=(surveyTarget?projectOf(surveyTarget):null)||projects.find(p=>p.id!==state.interiorProjectId)||projects[0];
     const route=calculateWalkingRoute({x:state.player.x,y:state.player.y},{x:target.x,y:target.y});
     const pts=route.points.map(p=>pt(p));
     const dStr='M '+pts.map(p=>`${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(' L ');
@@ -727,6 +756,7 @@ function helpPanel(){
       <button class="primary" id="btnImportSave">RESTORE SAVE GAME</button>
       <input type="file" id="importFileInput" accept=".json" style="display:none;">
       <button class="primary" id="btnHighContrast">TOGGLE HIGH-CONTRAST ACCESSIBILITY</button>
+      <button class="primary" id="btnTextSpeed">CYCLE DIALOGUE TEXT SPEED</button>
     </div>
     <p class="tiny">Feature contract loaded: ${FEATURE_CONTRACT.length}/20 systems.</p>
   `);
@@ -747,12 +777,34 @@ function helpPanel(){
     document.body.classList.toggle('high-contrast');
     notify(`High-contrast: ${document.body.classList.contains('high-contrast')?'ON':'OFF'}`);
   };
+  const speedBtn=$('#btnTextSpeed');
+  if(speedBtn){
+    speedBtn.onclick=()=>{
+      const speeds=['normal','fast','instant'];
+      const current=window.__dialogueSpeed||'normal';
+      const next=speeds[(speeds.indexOf(current)+1)%speeds.length];
+      window.__dialogueSpeed=next;
+      setDialogueSpeed(next);
+      notify(`Dialogue speed: ${next.toUpperCase()}`);
+    };
+  }
 }
 
 window.addEventListener('keydown',e=>{
-  const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright',' ','enter'].includes(k))e.preventDefault();
+  const isInput=['input','textarea','select'].includes(e.target?.tagName?.toLowerCase());
+  const k=e.key.toLowerCase();
+  if(isInput){
+    if(k==='escape')e.target.blur();
+    return;
+  }
+  if(['arrowup','arrowdown','arrowleft','arrowright',' ','enter'].includes(k))e.preventDefault();
   if(k==='m'){state.audioMuted=toggleMuted();updateAudioButton();save();notify(state.audioMuted?'Score muted.':'Score restored.');return}
-  if(isDialogueOpen()){if(k==='enter'||k===' ')return advanceDialogue();if(k==='escape')return closeDialogue();return}
+  if(isDialogueOpen()){
+    if(k==='enter'||k===' ')return advanceDialogue();
+    if(k==='escape')return closeDialogue();
+    if(k>='1'&&k<='9'){selectDialogueChoice(Number(k)-1);return}
+    return;
+  }
   if(k==='escape'){if(panel.classList.contains('open'))return closePanel();if(state.mode==='interior')return leaveInterior();if(state.mode==='chronicle')return leaveChronicle();}
   if(k==='t'){cycleTrackedQuest();return}
   if(k==='o'){toggleCompass();return}

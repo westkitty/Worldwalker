@@ -35,7 +35,9 @@ export function setDialogueSpeed(speed='normal'){
   charDelay=speed==='instant'?0:speed==='fast'?7:14;
 }
 export function showDialogue(opts){
-  if(!ensure())return false;session={lines:(opts.lines||[]).filter(Boolean),choices:opts.choices||[],onClose:opts.onClose};index=0;
+  if(!ensure())return false;
+  if(session)closeDialogue();
+  session={lines:(opts.lines||[]).filter(Boolean),choices:opts.choices||[],onClose:opts.onClose};index=0;
   speaker.textContent=opts.speaker||'WORLDWALKER';portrait.src=opts.portrait||'';portrait.alt=opts.speaker||'';portrait.classList.toggle('hidden',!opts.portrait);root.classList.remove('hidden');root.classList.add('open');typeLine();return true;
 }
 export function advanceDialogue(){

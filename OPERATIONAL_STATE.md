@@ -50,8 +50,9 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Immersion contract: PASS.
 - Presence contract: PASS.
 - Adventure contract: PASS on travel encounters, NPC schedules, interior props, Journey Recap and cinematic region reveals.
-- System contract: PASS on spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, and invariant discipline.
+- System contract: PASS on spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, invariant discipline, and bugsweep regression guards.
 - Uplift contract: 101/101 PASS on docs/IMPROVEMENT_LEDGER.md count integrity (20 UI/UX, 20 Gameplay, 20 Backend, 20 QOL, 20 Features, 1 WOW-ME) and functional wiring.
+- Bugsweep audit: 10/10 edge-case defects resolved (input keydown isolation, dialogue number selection, ferry target destination fallback, bulletin noticeboard resolution, overworld pin rendering, topbar weather dynamic binding, F3 diagnostics dynamic HUD, surveyor target fallback, dialogue-art codex collision guard, and zero-distance route calculation).
 - `npm run smoke`: PASS with dual-mode live-network and in-process request verification.
 - Live HTTP delivery: `/`, `/app.js`, `/travel-encounters.js`, `/dialogue.js` and `/styles.css` all return 200.
 - Live shell contains `regionCard`; served app contains `journeyRecapPanel`.

@@ -112,7 +112,7 @@ function drawNoticeboards(ctx,game){
   }
 }
 function drawCustomPins(ctx,game){
-  const pins=game.state.customPins||[],[cx,cy]=viewCenter(game);
+  const pins=game.state.activePins||game.state.customPins||[],[cx,cy]=viewCenter(game);
   for(const pin of pins){
     const [sx,sy]=w2s(pin.x,pin.y,cx,cy,game.canvas);
     ctx.fillStyle=pin.color||'#ff4f4b';ctx.beginPath();ctx.arc(sx+8,sy-2,5,0,Math.PI*2);ctx.fill();
@@ -234,7 +234,7 @@ function drawMiniMap(ctx,game){
   ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
   for(const p of game.projects){if(!game.state.arrivals[p.id]&&!game.state.visited[p.id])continue;const px=cx-r+(p.x/WORLD.w)*r*2,py=cy-r+(p.y/WORLD.h)*r*2;ctx.fillStyle=game.state.waystones[p.id]?'#f7d16b':'#dbe5ef';ctx.beginPath();ctx.arc(px,py,game.state.waystones[p.id]?3.3:2.2,0,Math.PI*2);ctx.fill();}
   for(const e of echoNodes(game.projects)){if(!game.state.echoes?.[e.id])continue;const ex=cx-r+(e.x/WORLD.w)*r*2,ey=cy-r+(e.y/WORLD.h)*r*2;ctx.fillStyle='#71e5d8';ctx.fillRect(ex-1,ey-1,2,2)}
-  for(const pin of (game.state.customPins||[])){const px=cx-r+(pin.x/WORLD.w)*r*2,py=cy-r+(pin.y/WORLD.h)*r*2;ctx.fillStyle=pin.color||'#ff4f4b';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill()}
+  for(const pin of (game.state.activePins||game.state.customPins||[])){const px=cx-r+(pin.x/WORLD.w)*r*2,py=cy-r+(pin.y/WORLD.h)*r*2;ctx.fillStyle=pin.color||'#ff4f4b';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill()}
   const tracked=game.state.trackedQuest&&game.projects.find(p=>p.id===game.state.trackedQuest.projectId);if(tracked){const tx=cx-r+(tracked.x/WORLD.w)*r*2,ty=cy-r+(tracked.y/WORLD.h)*r*2;ctx.strokeStyle='#ffd56f';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(tx,ty,6+Math.sin(game.now*.004),0,Math.PI*2);ctx.stroke()}
   const px=cx-r+(game.state.player.x/WORLD.w)*r*2,py=cy-r+(game.state.player.y/WORLD.h)*r*2;
   const pDir=game.state.player.dir||4,angle=(pDir-2)*Math.PI/4;
@@ -286,12 +286,12 @@ export function interactionTargets(game){
   const targets=[];
   for(const p of game.projects)targets.push({type:'project',project:p,label:'ENTER '+p.interior.toUpperCase(),x:p.x,y:p.y,distance:dist(game.state.player.x,game.state.player.y,p.x,p.y)});
   for(const n of settlementInteractionNodes(game))targets.push({...n,distance:dist(game.state.player.x,game.state.player.y,n.x,n.y)});
-  for(const p of game.projects)targets.push({type:'bulletin',project:p,x:p.x-5.2,y:p.y+4.2,label:`NOTICEBOARD · ${p.name.toUpperCase()}`,distance:dist(game.state.player.x,game.state.player.y,p.x-5.2,p.y+4.2)});
+  for(const p of game.projects)targets.push({type:'bulletin',project:p,bulletin:SETTLEMENT_BULLETINS[p.id],title:SETTLEMENT_BULLETINS[p.id]?.title,x:p.x-5.2,y:p.y+4.2,label:`NOTICEBOARD · ${p.name.toUpperCase()}`,distance:dist(game.state.player.x,game.state.player.y,p.x-5.2,p.y+4.2)});
   for(const s of OVERWORLD_SIGNPOSTS)targets.push({...s,type:'signpost',label:`READ · ${s.title}`,distance:dist(game.state.player.x,game.state.player.y,s.x,s.y)});
   const fDistW=dist(game.state.player.x,game.state.player.y,RIVER_FERRY.west.x,RIVER_FERRY.west.y);
-  if(fDistW<4)targets.push({type:'ferry',side:'west',label:'RIVER FERRY · CROSS EAST',x:RIVER_FERRY.west.x,y:RIVER_FERRY.west.y,distance:fDistW});
+  if(fDistW<4)targets.push({type:'ferry',side:'west',to:RIVER_FERRY.east,label:'RIVER FERRY · CROSS EAST',x:RIVER_FERRY.west.x,y:RIVER_FERRY.west.y,distance:fDistW});
   const fDistE=dist(game.state.player.x,game.state.player.y,RIVER_FERRY.east.x,RIVER_FERRY.east.y);
-  if(fDistE<4)targets.push({type:'ferry',side:'east',label:'RIVER FERRY · CROSS WEST',x:RIVER_FERRY.east.x,y:RIVER_FERRY.east.y,distance:fDistE});
+  if(fDistE<4)targets.push({type:'ferry',side:'east',to:RIVER_FERRY.west,label:'RIVER FERRY · CROSS WEST',x:RIVER_FERRY.east.x,y:RIVER_FERRY.east.y,distance:fDistE});
   for(const e of echoNodes(game.projects))targets.push({...e,type:'echo',label:game.state.echoes?.[e.id]?'REVISIT WORLD ECHO':'LISTEN · WORLD ECHO',distance:dist(game.state.player.x,game.state.player.y,e.x,e.y)});
   for(const f of TRAVERSAL_FEATURES)targets.push({...f,type:'traversal',distance:dist(game.state.player.x,game.state.player.y,f.x,f.y)});
   for(const n of artifactNodes(game))targets.push({...n,type:'artifact',label:game.state.discoveredArtifacts[n.id]?'INSPECT FOUND ARTIFACT':'DISCOVER ARTIFACT',distance:dist(game.state.player.x,game.state.player.y,n.x,n.y)});

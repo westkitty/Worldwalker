@@ -68,6 +68,12 @@ assert.ok(route && Number.isFinite(route.distance) && route.distance > 0, 'route
 assert.ok(Array.isArray(route.points) && route.points.length >= 2, 'route has interpolated points');
 assert.ok(Number.isFinite(route.steps) && route.steps > 0, 'route step estimate computed');
 
+const zeroRoute = calculateWalkingRoute({ x: 20, y: 20 }, { x: 20, y: 20 });
+assert.equal(zeroRoute.distance, 0, 'zero distance route handled cleanly without NaN');
+assert.ok(zeroRoute.points.length >= 2, 'points array created for zero distance');
+assert.ok(Number.isFinite(zeroRoute.points[0].x) && Number.isFinite(zeroRoute.points[0].y), 'no NaN in zero route points');
+assert.ok(!Number.isNaN(zeroRoute.points[1].x) && !Number.isNaN(zeroRoute.points[1].y), 'no NaN in zero route target');
+
 // 3. Validate SpatialGrid
 const { SpatialGrid } = await import('../public/render.js');
 const grid = new SpatialGrid(10);
@@ -91,7 +97,17 @@ assert.match(serverCode, /nosniff/, 'nosniff header implemented');
 // 5. Invariant check: strictly no XP or productivity scores
 const appCode = fs.readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
 const modelCode = fs.readFileSync(new URL('../public/model.js', import.meta.url), 'utf8');
+const renderCode = fs.readFileSync(new URL('../public/render.js', import.meta.url), 'utf8');
 assert.doesNotMatch(appCode, /productivityScore|playerLevel|experiencePoints|\bxp\s*:/i, 'app.js preserves non-gamified exploration invariant');
 assert.doesNotMatch(modelCode, /productivityScore|playerLevel|experiencePoints|\bxp\s*:/i, 'model.js preserves non-gamified exploration invariant');
 
-console.log('SYSTEM CONTRACT PASS: spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, invariant discipline');
+// 6. Bugsweep regression assertions
+assert.match(appCode, /isInput/, 'input elements guarded against game key hijacking');
+assert.match(appCode, /selectDialogueChoice/, 'dialogue choice keyboard selection wired');
+assert.match(appCode, /updateWeatherBadge/, 'topbar weather badge updated dynamically');
+assert.match(appCode, /updateDiagnostics/, 'f3 hud diagnostics updated dynamically');
+assert.match(renderCode, /activePins.*customPins/, 'overworld pins read activePins');
+assert.match(renderCode, /to:\s*RIVER_FERRY\.(east|west)/, 'ferry interaction target has destination endpoint');
+assert.match(renderCode, /bulletin:\s*SETTLEMENT_BULLETINS/, 'settlement bulletin target contains noticeboard data');
+
+console.log('SYSTEM CONTRACT PASS: spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, invariant discipline, bugsweep regression guards');
