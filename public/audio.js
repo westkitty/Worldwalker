@@ -13,8 +13,11 @@ function tone(freq,when,duration=.6,type='sine',volume=.025){
 export async function initAudio(){
   if(ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
   ctx=new AC();master=ctx.createGain();
-  const savedVol=Number(localStorage.getItem('worldwalker-volume'));
-  if(!isNaN(savedVol)&&savedVol>=0&&savedVol<=1)masterVolume=savedVol;
+  const savedVolRaw=localStorage.getItem('worldwalker-volume');
+  if(savedVolRaw!==null&&savedVolRaw!==''){
+    const savedVol=Number(savedVolRaw);
+    if(!isNaN(savedVol)&&savedVol>=0&&savedVol<=1)masterVolume=savedVol;
+  }
   master.gain.value=muted?0:masterVolume;master.connect(ctx.destination);
   if(ctx.state==='suspended'){
     const unlock=()=>{if(ctx&&ctx.state==='suspended')ctx.resume();window.removeEventListener('pointerdown',unlock);window.removeEventListener('keydown',unlock)};

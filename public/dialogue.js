@@ -46,7 +46,8 @@ export function advanceDialogue(){
   if(!session.choices?.length){closeDialogue();return true}return true;
 }
 export function selectDialogueChoice(idx){
-  if(!session||!session.choices?.length)return false;
+  if(!session||index<session.lines.length-1||!session.choices?.length)return false;
+  if(visible.length<(session.lines[index]||'').length)return false;
   const choice=session.choices[idx];
   if(choice){closeDialogue();choice.action?.();return true}
   return false;

@@ -98,6 +98,8 @@ assert.match(serverCode, /nosniff/, 'nosniff header implemented');
 const appCode = fs.readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
 const modelCode = fs.readFileSync(new URL('../public/model.js', import.meta.url), 'utf8');
 const renderCode = fs.readFileSync(new URL('../public/render.js', import.meta.url), 'utf8');
+const audioCode = fs.readFileSync(new URL('../public/audio.js', import.meta.url), 'utf8');
+const dialogueCode = fs.readFileSync(new URL('../public/dialogue.js', import.meta.url), 'utf8');
 assert.doesNotMatch(appCode, /productivityScore|playerLevel|experiencePoints|\bxp\s*:/i, 'app.js preserves non-gamified exploration invariant');
 assert.doesNotMatch(modelCode, /productivityScore|playerLevel|experiencePoints|\bxp\s*:/i, 'model.js preserves non-gamified exploration invariant');
 
@@ -109,5 +111,11 @@ assert.match(appCode, /updateDiagnostics/, 'f3 hud diagnostics updated dynamical
 assert.match(renderCode, /activePins.*customPins/, 'overworld pins read activePins');
 assert.match(renderCode, /to:\s*RIVER_FERRY\.(east|west)/, 'ferry interaction target has destination endpoint');
 assert.match(renderCode, /bulletin:\s*SETTLEMENT_BULLETINS/, 'settlement bulletin target contains noticeboard data');
+assert.match(audioCode, /savedVolRaw/, 'audio volume guards against null localStorage key');
+assert.match(appCode, /window\.addEventListener\('blur',/, 'keys cleared on window blur');
+assert.match(appCode, /state\.mode='world';state\.interiorProjectId=null;/, 'waystone travel resets mode and clears interior');
+assert.match(appCode, /:first`\]=true/, 'encounter tracks first visit to unlock alternate guide roles');
+assert.match(dialogueCode, /visible\.length<\(session\.lines\[index\]\|\|''\)\.length/, 'dialogue choice selection blocked while typing or on early lines');
+assert.match(serverCode, /malformed-uri/, 'server handles malformed URI decoding gracefully with 400 Bad Request');
 
 console.log('SYSTEM CONTRACT PASS: spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, invariant discipline, bugsweep regression guards');

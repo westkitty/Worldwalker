@@ -331,7 +331,12 @@ async function serveRuntimeAsset(req, res, url) {
 async function serveArtifact(req, res, url) {
   const id = url.searchParams.get('project');
   const rawRel = url.searchParams.get('rel') || '';
-  const rel = decodeURIComponent(rawRel);
+  let rel;
+  try {
+    rel = decodeURIComponent(rawRel);
+  } catch {
+    return sendJson(res, { error: 'bad-request', detail: 'malformed-uri' }, 400);
+  }
   const p = projects.find(x => x.id === id);
   if (!p || !rel) return sendJson(res, { error: 'bad-artifact' }, 400);
   const file = path.normalize(path.join(p.root, rel));
@@ -361,7 +366,13 @@ async function serveArtifact(req, res, url) {
 }
 
 async function serveStatic(req, res, url) {
-  const rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
+  let rel;
+  try {
+    rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
+  } catch {
+    res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' });
+    return res.end('Bad Request');
+  }
   const file = path.normalize(path.join(PUBLIC, rel));
   if (!(file === path.join(PUBLIC, 'index.html') || safeInside(PUBLIC, file))) {
     res.writeHead(403);

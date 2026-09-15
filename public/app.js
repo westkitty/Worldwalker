@@ -73,7 +73,18 @@ function importSave(jsonStr){
     notify('Import failed: invalid save format.');
   }
 }
-function logEvent(kind,title,detail='',projectId=null){state.journal.push({kind,title,detail,projectId,at:new Date().toISOString()});state.journal=state.journal.slice(-140);save();updateBootSummary()}
+function checkMilestones(){
+  const list=explorationMilestones(state);
+  for(const m of list){
+    if(m.achieved&&!state.completedMilestones[m.id]){
+      state.completedMilestones[m.id]=true;
+      logEvent('milestone',`Milestone · ${m.title}`,m.detail);
+      stinger('waystone');
+      notify(`✦ MILESTONE UNLOCKED: ${m.title}`,3400);
+    }
+  }
+}
+function logEvent(kind,title,detail='',projectId=null){state.journal.push({kind,title,detail,projectId,at:new Date().toISOString()});state.journal=state.journal.slice(-140);save();updateBootSummary();if(kind!=='milestone')checkMilestones()}
 function esc(s=''){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function formatBytes(n=0){if(n>1e6)return(n/1e6).toFixed(1)+' MB';if(n>1e3)return(n/1e3).toFixed(0)+' KB';return n+' B'}
 function updateBootSummary(){const el=$('#resumeSummary'),wake=$('#wake');if(!el)return;const e=state.journal.at(-1);if(!e){el.textContent='NO JOURNEY MEMORY YET.';return}const d=new Date(e.at);el.textContent=`LAST MEMORY · ${e.title.toUpperCase()} · ${d.toLocaleDateString()} ${d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}`;if(wake)wake.textContent='RESUME JOURNEY'}
@@ -128,7 +139,7 @@ function inspectInteriorProp(n){
 }
 function checkTravelEncounter(){
   if(state.mode!=='world'){travelLastX=state.player.x;travelLastY=state.player.y;return}const d=Math.hypot(state.player.x-travelLastX,state.player.y-travelLastY);travelLastX=state.player.x;travelLastY=state.player.y;if(d>0&&d<1.25)state.travelMeters+=d;
-  if(state.travelMeters<state.nextEncounterAt||panel.classList.contains('open')||isDialogueOpen()||transitioning)return;const e=encounterFor(game,state.encounters);state.nextEncounterAt+=e?24:8;if(!e){save();return}state.encounters[e.key]=true;logEvent('encounter',`Road encounter · ${e.speaker}`,e.lines[2],e.project.id);stinger('discover');bumpCamera(camera,.18);showDialogue({speaker:e.speaker,portrait:runtimeAsset(e.portrait),lines:e.lines});
+  if(state.travelMeters<state.nextEncounterAt||panel.classList.contains('open')||isDialogueOpen()||transitioning)return;const e=encounterFor(game,state.encounters);state.nextEncounterAt+=e?24:8;if(!e){save();return}state.encounters[e.key]=true;state.encounters[`${e.project.id}:first`]=true;logEvent('encounter',`Road encounter · ${e.speaker}`,e.lines[2],e.project.id);stinger('discover');bumpCamera(camera,.18);showDialogue({speaker:e.speaker,portrait:runtimeAsset(e.portrait),lines:e.lines});
 }
 function checkRegionArrival(){
   if(state.mode!=='world')return;const p=projects.find(x=>dist(state.player.x,state.player.y,x.x,x.y)<8.7)||null;const id=p?.id||null;if(id===lastRegionId)return;lastRegionId=id;if(!p)return;
@@ -472,7 +483,7 @@ function milestonesPanel(){
   `);
 }
 function journalPanel(filter='all',query=''){
-  const icons={arrival:'⌖',artifact:'▣',manual:'▤',secret:'✦',waystone:'◆',quest:'⚑',echo:'◌',shift:'↯',travel:'→',encounter:'☄',inspection:'◇'};
+  const icons={arrival:'⌖',artifact:'▣',manual:'▤',secret:'✦',waystone:'◆',quest:'⚑',echo:'◌',shift:'↯',travel:'→',encounter:'☄',inspection:'◇',milestone:'★'};
   let entries=[...state.journal].reverse();
   if(filter!=='all'){
     if(filter==='discoveries')entries=entries.filter(e=>['artifact','manual','secret'].includes(e.kind));
@@ -728,6 +739,8 @@ function mapPanel(mode=null){
     b.onclick=()=>{
       const p=projectOf(b.dataset.travel);
       if(!state.waystones[p.id])return;
+      state.mode='world';
+      state.interiorProjectId=null;
       state.player.x=p.x;state.player.y=p.y+5;
       camera.x=state.player.x;camera.y=state.player.y;
       stinger('waystone');
@@ -739,10 +752,11 @@ function mapPanel(mode=null){
   const addPin=$('#addPinBtn');
   if(addPin)addPin.onclick=()=>{
     const label=window.prompt('Enter marker label:','Camp');
-    if(!label)return;
-    state.activePins.push({x:state.player.x,y:state.player.y,label:label.slice(0,18),color:'#f6c65b'});
+    if(!label||!label.trim())return;
+    const clean=label.trim().slice(0,18);
+    state.activePins.push({x:state.player.x,y:state.player.y,label:clean,color:'#f6c65b'});
     save();
-    notify(`Pin placed: ${label}`);
+    notify(`Pin placed: ${clean}`);
     mapPanel(currentAtlasMode);
   };
   const clearPins=$('#clearPinsBtn');
@@ -841,7 +855,7 @@ window.addEventListener('keydown',e=>{
   if(k==='1'){mapPanel();return}
   if(k==='2'){questPanel();return}
   if(k==='3'){artifactsPanel();return}
-  if(k==='4'){enterChronicle();return}
+  if(k==='4'){if(state.mode==='chronicle')return leaveChronicle();enterChronicle();return}
   if(k==='5'){journalPanel();return}
   if(k==='6'){manualPanel();return}
   if(k==='7'){$('#artCodexButton')?.click();return}
@@ -849,13 +863,14 @@ window.addEventListener('keydown',e=>{
   if(k===' '){startHop();return}if(k==='c'){useTraversal();return}if(k==='enter'){interact();return}keys.add(k);
 });
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+window.addEventListener('blur',()=>keys.clear());
 window.addEventListener('gamepadconnected',e=>notify(`Controller ready · ${e.gamepad.id.split('(')[0].trim()}`,2400));
 window.addEventListener('gamepaddisconnected',()=>{padButtons=[];padSprint=false;notify('Controller disconnected.',1800)});
-$('#wake').onclick=async()=>{if(running)return;$('#boot').classList.add('hidden');$('#app').classList.remove('hidden');await initAudio();setMuted(!!state.audioMuted);updateAudioButton();await loadSnapshot();camera.x=state.player.x;camera.y=state.player.y;running=true;last=performance.now();requestAnimationFrame(loop)};
+$('#wake').onclick=async()=>{if(running)return;$('#boot').classList.add('hidden');$('#app').classList.remove('hidden');await initAudio();setMuted(!!state.audioMuted);setVolume(state.masterVolume);updateAudioButton();await loadSnapshot();camera.x=state.player.x;camera.y=state.player.y;running=true;last=performance.now();requestAnimationFrame(loop)};
 $('#closePanel').onclick=closePanel;
 $('#audioToggle').onclick=()=>{state.audioMuted=toggleMuted();updateAudioButton();save();notify(state.audioMuted?'Score muted.':'Score restored.')};
 document.querySelectorAll('.dock button').forEach(b=>b.onclick=()=>{
-  const fn={atlas:mapPanel,quests:questPanel,artifacts:artifactsPanel,chronicle:enterChronicle,journal:journalPanel,manual:()=>manualPanel(),help:helpPanel}[b.dataset.panel];if(fn)fn();
+  const fn={atlas:mapPanel,quests:questPanel,artifacts:artifactsPanel,chronicle:()=>state.mode==='chronicle'?leaveChronicle():enterChronicle(),journal:journalPanel,manual:()=>manualPanel(),help:helpPanel}[b.dataset.panel];if(fn)fn();
 });
 document.querySelectorAll('[data-hold]').forEach(b=>{const k=b.dataset.hold;const on=e=>{e.preventDefault();keys.add(k)};const off=e=>{e.preventDefault();keys.delete(k)};b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off)});
 document.querySelectorAll('[data-touch]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();const fn={interact:()=>isDialogueOpen()?advanceDialogue():interact(),hop:()=>{if(!isDialogueOpen())startHop()},traverse:()=>{if(!isDialogueOpen())useTraversal()}}[b.dataset.touch];fn?.()}));
