@@ -49,7 +49,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Live HTTP delivery: `/`, `/app.js`, `/travel-encounters.js`, `/dialogue.js` and `/styles.css` all return 200.
 - Live shell contains `regionCard`; served app contains `journeyRecapPanel`.
 - Live server: `http://127.0.0.1:5179`.
-- Worldwalker is not currently a Git repository, so no commit or push is claimed.
+- Git repository: verified tracking origin/main at git@github.com:westkitty/Worldwalker.git.
 - Automated visual/auditory acceptance does not substitute for human aesthetic review.
 
 ## Next human gate

@@ -208,6 +208,7 @@ export function renderChronicle(game){
 export function interactionTargets(game){
   if(game.state.mode==='interior'){
     const p=game.projects.find(x=>x.id===game.state.interiorProjectId);
+    if(!p)return[];
     const stations=INTERIOR_STATIONS.map((s,i)=>({...s,type:'station',project:p,label:i===5?'LEAVE '+p.name:(p.zones[i]||s.id).toUpperCase(),distance:dist(game.state.player.ix,game.state.player.iy,s.x,s.y)}));
     const props=interiorInteractionNodes(p).map(n=>({...n,distance:dist(game.state.player.ix,game.state.player.iy,n.x,n.y)}));
     const guide={type:'guide',project:p,x:27,y:10.3,label:`TALK · ${p.guide||'LOCAL GUIDE'}`,distance:dist(game.state.player.ix,game.state.player.iy,27,10.3)};
