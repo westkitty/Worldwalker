@@ -1,14 +1,15 @@
 # Operational State: Worldwalker
 
 Project ID: `worldwalker`
-State revision: 29
+State revision: 30
 Baseline: `0.29.0`
-State: `grand-atlas-uplift-verified`
+State: `production-runtime-preserved-candidate-bank-rejected`
 
 ## Purpose
 Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real project ecosystem. Real project state drives geography, artifacts, quests and environmental condition without silently mutating source projects.
 
 ## Current release (v0.29.0)
+- **Candidate Asset Bank Review**: A 362-asset source-plan build was audited against the verified production runtime. 91 filenames collide with established production artwork and remain untouched; the 271 generated-only files failed representative visual QA and were rejected from the repository runtime. Their source bank remains in Google Drive under `macbook/Worldwalker`. Production remains at the verified 104-PNG runtime baseline.
 - **Flagship WOW-01**: The **Grand Cartographic Expedition Atlas & Live Ecosystem Orrery** is integrated into the Worldwalker Atlas (`1` / Map dock / waystones). Includes topographic elevation contours, interactive Walking Route Surveyor (`calculateWalkingRoute`) computing real distances, leagues, footsteps, and river navigation, and the cosmic **Ecosystem Orrery** visualizing the 5 source projects orbiting the Central Meridian with live Git branch/commit telemetry and condition spectra.
 - **Gameplay Traversal & Navigation**: Added river stepping stones for pedestrian crossings, two-way river cable raft ferries (`RIVER_FERRY`), directional overworld signposts (`OVERWORLD_SIGNPOSTS`), settlement bulletin boards (`SETTLEMENT_BULLETINS`), and a high-speed sprint-hop stride dash.
 - **Interactive Tools & Audio**: Added Jukebox Studio (`J`) for auditioning regional themes and acoustic stingers, Expedition Postcard Snapshot tool (`P`), Technology Matrix viewer (`FEAT-03`), and Exploration Milestones (`FEAT-15`) celebrating genuine cartographic discovery.
@@ -42,6 +43,9 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 15. Reduced-motion, keyboard, touch and controller gameplay paths remain available.
 
 ## Verification
+- Candidate asset-bank review: PASS — all 362 source-plan assets accounted for; 271 generated-only candidates rejected from production, 91 production collisions preserved, active runtime unchanged at 104 PNGs.
+- Representative visual QA: FAIL for production promotion — `player_downleft_0.png` is materially lower-detail than the established traveler, and `portrait_hero_neutral_blink.png` is identity/style-inconsistent with the established hero portrait.
+- Production validation after candidate rejection: `npm run validate` PASS, `npm run smoke` PASS, and `git diff --check` PASS.
 - Package version: `0.29.0`.
 - `npm run validate`: PASS (all 9 test suites: check, features, model, gamefeel, immersion, presence, adventure, system, uplift).
 - Feature contract: 20/20 PASS.
@@ -61,4 +65,6 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Automated visual/auditory acceptance does not substitute for human aesthetic review.
 
 ## Next human gate
+Recover future additions from the authoritative production-quality master sheets (especially the existing eight-direction traveler sheet) or redraw them to equivalent quality before promotion. Human aesthetic review at native nearest-neighbor scale remains mandatory; filename presence or PNG validity is not approval.
+
 Walk a long route between regions, inspect at least one gold-glint interior prop, revisit a waystone for Journey Recap, then enter a previously undiscovered region. Judge encounter cadence, schedule believability, prop usefulness, recap clarity and whether the location reveal finally feels like entering a place in a JRPG rather than opening a project card.

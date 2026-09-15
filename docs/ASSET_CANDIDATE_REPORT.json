@@ -1,0 +1,24 @@
+{
+  "status": "REJECTED_FOR_PRODUCTION_AFTER_VISUAL_QA",
+  "sourceAssetCount": 362,
+  "generatedOnlyCandidates": 271,
+  "productionCollisionsPreserved": 91,
+  "productionRuntimePngCount": 104,
+  "repoPromotion": "none",
+  "sourceBankLocation": "Google Drive/macbook/Worldwalker",
+  "visualEvidence": [
+    "player_downleft_0.png is materially lower-detail than established player_down_0.png",
+    "portrait_hero_neutral_blink.png is materially lower-detail and identity-inconsistent with established portrait_hero_neutral.png"
+  ],
+  "decision": "Keep the verified production runtime unchanged. Replace/redraw candidate families from authoritative high-quality source sheets before any production promotion.",
+  "authoritativeRecoverySource": "Google Drive/GPT/Worldwalker/ASSETS/2026-09-14 contains production-quality master sheets including eight-direction traveler art.",
+  "sourceConflicts": [
+    "SPREAD-01 overview says 34 slices, while the concrete 8x6 matrix plus 7 auxiliary entries specifies 55 slices. Build follows the concrete matrix and auxiliary bank.",
+    "SPREAD-05 overview says 20 slices, while five concrete monuments x 3 named passes yields 15. Build creates the 15 explicitly named assets.",
+    "SPREAD-06 section title says 22 structures, but the numbered list contains 23 (including workshop). Build includes all 23 listed structures.",
+    "SPREAD-08 overview says 24 slices, while the concrete named asset list provides 12 filenames. Build creates those 12 named slices; unnamed animation frames are not fabricated.",
+    "SPREAD-09 overview says 28 slices, while the concrete section names 11 files including the three torch ember frames. Build creates the named files only.",
+    "SPREAD-10 overview says 64 slices, but prose says a 47-tile autotile system across 9 biomes. Build normalized 64 as 47 topology masks + 9 biome bases + 8 transition-class extras.",
+    "SPREAD-11 overview says 32 slices, while 15 concrete filenames are enumerated. Build creates those 15 named assets; unnamed slots are not fabricated."
+  ]
+}
