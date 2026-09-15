@@ -1,14 +1,19 @@
 # Operational State: Worldwalker
 
 Project ID: `worldwalker`
-State revision: 28
-Baseline: `0.28.0`
-State: `adventure-five-pass-integrated-verified`
+State revision: 29
+Baseline: `0.29.0`
+State: `grand-atlas-uplift-verified`
 
 ## Purpose
 Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real project ecosystem. Real project state drives geography, artifacts, quests and environmental condition without silently mutating source projects.
 
-## Current release
+## Current release (v0.29.0)
+- **Flagship WOW-01**: The **Grand Cartographic Expedition Atlas & Live Ecosystem Orrery** is integrated into the Worldwalker Atlas (`1` / Map dock / waystones). Includes topographic elevation contours, interactive Walking Route Surveyor (`calculateWalkingRoute`) computing real distances, leagues, footsteps, and river navigation, and the cosmic **Ecosystem Orrery** visualizing the 5 source projects orbiting the Central Meridian with live Git branch/commit telemetry and condition spectra.
+- **Gameplay Traversal & Navigation**: Added river stepping stones for pedestrian crossings, two-way river cable raft ferries (`RIVER_FERRY`), directional overworld signposts (`OVERWORLD_SIGNPOSTS`), settlement bulletin boards (`SETTLEMENT_BULLETINS`), and a high-speed sprint-hop stride dash.
+- **Interactive Tools & Audio**: Added Jukebox Studio (`J`) for auditioning regional themes and acoustic stingers, Expedition Postcard Snapshot tool (`P`), Technology Matrix viewer (`FEAT-03`), and Exploration Milestones (`FEAT-15`) celebrating genuine cartographic discovery.
+- **QOL & HUD Uplift**: Quick quest cycling (`T`), compass overlay toggle (`O`), notification dispatch drawer (`L`), multi-toast notification stack, F3 performance diagnostics HUD, and dock hotkeys (`1` through `8`).
+- **Backend & Storage Hardening**: Server ETag calculation with HTTP 304 Not Modified support, snapshot TTL caching (2500ms), Git execution timeout guards (3500ms), URL space decoding for paths such as `orbital tomb`, robust save migration (`v5` -> `v6`), save JSON backup/restore, and localStorage quota protection.
 - Long-distance overworld travel can trigger non-combat road encounters near project regions. Their narrative wrapper is Worldwalker fiction; project condition and quest status lines are source-backed.
 - Settlement residents now follow morning/day/evening/night schedules. Evening and night also add warm settlement-light treatment while source condition remains authoritative.
 - Fifteen interior furniture/instrument interactions are wired across the five project interiors. Inspections expose bounded condition, quest or Git evidence and preserve ledger-content privacy.
@@ -37,15 +42,16 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 15. Reduced-motion, keyboard, touch and controller gameplay paths remain available.
 
 ## Verification
-- Package version: `0.28.0`.
-- `npm run validate`: PASS.
+- Package version: `0.29.0`.
+- `npm run validate`: PASS (all 8 test suites).
 - Feature contract: 20/20 PASS.
 - Evidence/model contract: PASS.
 - Game-feel contract: PASS.
 - Immersion contract: PASS.
 - Presence contract: PASS.
 - Adventure contract: PASS on travel encounters, NPC schedules, interior props, Journey Recap and cinematic region reveals.
-- `npm run smoke`: PASS after live-server restart.
+- System contract: PASS on spatial grid, world data, route surveyor, milestones, tech matrix, server hardening, and invariant discipline.
+- `npm run smoke`: PASS with live HTTP server.
 - Live HTTP delivery: `/`, `/app.js`, `/travel-encounters.js`, `/dialogue.js` and `/styles.css` all return 200.
 - Live shell contains `regionCard`; served app contains `journeyRecapPanel`.
 - Live server: `http://127.0.0.1:5179`.

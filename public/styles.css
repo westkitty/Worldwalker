@@ -38,3 +38,25 @@
 @media(max-width:650px){.resume-summary{max-width:88vw}.region-card{top:12%;min-width:88vw;padding:11px 15px}.region-card strong{font-size:17px}}
 
 .dialogue-actions .primary{margin:0;width:100%;text-align:center}
+
+/* Uplift v0.29.0 HUD, Atlas, Orrery, and Accessibility */
+.weather-badge{display:inline-block;margin-left:14px;padding:2px 8px;border:1px solid #4a5d78;background:#0d1828;color:#9bc0e4;font-size:9px;letter-spacing:.1em;border-radius:2px}
+.toast-stack{position:absolute;top:18px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none;z-index:10;max-width:min(90vw,640px)}
+.toast-item{padding:8px 14px;background:#09111de6;border:1px solid #d4aa58;color:#f6e8c5;font-size:11px;box-shadow:0 4px 12px #000a;border-radius:2px;opacity:0;transform:translateY(-8px);transition:opacity .18s ease,transform .18s ease}
+.toast-item.show{opacity:1;transform:translateY(0)}
+.f3-hud{position:absolute;top:12px;left:12px;z-index:9;background:#060a12e8;border:1px solid #4d607a;padding:8px 12px;font-size:10px;color:#c0d2e8;display:grid;gap:4px;box-shadow:2px 2px 0 #000}
+.f3-hud b{color:#f5cf7b}
+.dock button kbd{display:inline-block;background:#0b1320;border:1px solid #33445c;color:#e5c982;font-size:8px;padding:1px 3px;border-radius:2px;margin-left:4px;vertical-align:middle}
+.atlas-mode-tabs{display:flex;gap:6px;margin:12px 0}
+.atlas-mode-tabs .tag{cursor:pointer;background:#0c1524;border-color:#485e7d;color:#ccd8e8}
+.atlas-mode-tabs .tag:hover,.atlas-mode-tabs .tag.open{background:#172e4f;border-color:#d4aa58;color:#fce4a6}
+body.high-contrast{filter:contrast(1.22)}
+body.high-contrast canvas{filter:contrast(1.25) brightness(1.05)}
+body.high-contrast .panel,body.high-contrast .card,body.high-contrast button{border-width:2px!important;border-color:#fff!important}
+@media(max-width:650px){
+  .dock{grid-template-columns:repeat(8,minmax(42px,1fr));overflow-x:auto}
+  .dock button{font-size:7px;padding:4px 2px}
+  .dock button kbd{display:none}
+  .weather-badge{display:none}
+}
+

@@ -1,4 +1,4 @@
-import { ROADS, MANUAL_PAGES, TRAVERSAL_FEATURES } from './world-data.js';
+import { ROADS, MANUAL_PAGES, TRAVERSAL_FEATURES, OVERWORLD_SIGNPOSTS, RIVER_STEPPING_STONES, RIVER_FERRY, SETTLEMENT_BULLETINS } from './world-data.js';
 import { drawSettlement, drawSettlementForeground, settlementInteractionNodes } from './settlement-render.js';
 import { drawInteriorScene, interiorInteractionNodes } from './interior-render.js';
 import { drawAsset, landmarkAsset, terrainAsset, npcAsset, playerAsset } from './assets.js';
@@ -6,6 +6,22 @@ import { cameraOffset } from './camera.js';
 import { echoNodes } from './world-echoes.js';
 
 export const WORLD = { w:96, h:72, tile:16 };
+export class SpatialGrid {
+  constructor(cellSize=8){this.cellSize=cellSize;this.cells=new Map()}
+  clear(){this.cells.clear()}
+  key(x,y){return `${Math.floor(x/this.cellSize)}:${Math.floor(y/this.cellSize)}`}
+  insert(item){const k=this.key(item.x,item.y);if(!this.cells.has(k))this.cells.set(k,[]);this.cells.get(k).push(item)}
+  query(x,y,radius=6){
+    const minCx=Math.floor((x-radius)/this.cellSize),maxCx=Math.floor((x+radius)/this.cellSize);
+    const minCy=Math.floor((y-radius)/this.cellSize),maxCy=Math.floor((y+radius)/this.cellSize);
+    const res=[];
+    for(let cx=minCx;cx<=maxCx;cx++)for(let cy=minCy;cy<=maxCy;cy++){
+      const list=this.cells.get(`${cx}:${cy}`);if(list)for(const it of list)if(Math.hypot(x-it.x,y-it.y)<=radius)res.push(it);
+    }
+    return res;
+  }
+}
+
 export const INTERIOR_STATIONS = [
   {id:'state',x:5,y:5,icon:'◆'}, {id:'artifacts',x:17,y:5,icon:'▣'}, {id:'history',x:27,y:5,icon:'◷'},
   {id:'quests',x:8,y:15,icon:'⚑'}, {id:'purpose',x:22,y:15,icon:'◇'}, {id:'exit',x:15,y:20,icon:'⇩'}
@@ -62,6 +78,49 @@ function drawRoads(ctx,game){
   for(const [aId,bId] of ROADS){const a=game.projects.find(p=>p.id===aId),b=game.projects.find(p=>p.id===bId);if(a&&b)drawRoad(ctx,game,a,b,false)}
   for(const r of game.relationships){if(!game.state.expeditions[r.id]?.unlocked)continue;const a=game.projects.find(p=>p.id===r.a),b=game.projects.find(p=>p.id===r.b);if(a&&b)drawRoad(ctx,game,a,b,true)}
 }
+function drawRiverFeatures(ctx,game){
+  const [cx,cy]=viewCenter(game);
+  for(const s of RIVER_STEPPING_STONES){
+    const [sx,sy]=w2s(s.x,s.y,cx,cy,game.canvas);
+    ctx.fillStyle='#6e7987';ctx.beginPath();ctx.arc(sx+8,sy+8,7,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#9caec2';ctx.lineWidth=1.5;ctx.stroke();
+    ctx.fillStyle='#b7c7d8';ctx.fillRect(sx+6,sy+6,4,3);
+  }
+  const [fx,fy]=w2s(RIVER_FERRY.west.x,RIVER_FERRY.west.y,cx,cy,game.canvas);
+  ctx.fillStyle='#684a2d';ctx.fillRect(fx,fy+2,24,14);
+  ctx.strokeStyle='#b89467';ctx.lineWidth=1;ctx.strokeRect(fx,fy+2,24,14);
+  ctx.fillStyle='#f5e4ba';ctx.font='7px monospace';ctx.fillText('RAFT',fx+4,fy+11);
+}
+function drawSignposts(ctx,game){
+  const [cx,cy]=viewCenter(game);
+  for(const s of OVERWORLD_SIGNPOSTS){
+    const [sx,sy]=w2s(s.x,s.y,cx,cy,game.canvas);
+    ctx.fillStyle='#4a3424';ctx.fillRect(sx+7,sy+6,3,10);
+    ctx.fillStyle='#c5a46d';ctx.fillRect(sx+1,sy,15,8);
+    ctx.strokeStyle='#3d2b1d';ctx.lineWidth=1;ctx.strokeRect(sx+1,sy,15,8);
+    ctx.fillStyle='#2b1b10';ctx.fillRect(sx+3,sy+2,11,1);ctx.fillRect(sx+3,sy+5,8,1);
+  }
+}
+function drawNoticeboards(ctx,game){
+  const [cx,cy]=viewCenter(game);
+  for(const p of game.projects){
+    const [sx,sy]=w2s(p.x-5.2,p.y+4.2,cx,cy,game.canvas);
+    ctx.fillStyle='#5c4028';ctx.fillRect(sx+6,sy+4,4,12);
+    ctx.fillStyle='#dfcaa0';ctx.fillRect(sx,sy-2,16,10);
+    ctx.strokeStyle='#432e1d';ctx.lineWidth=1;ctx.strokeRect(sx,sy-2,16,10);
+    ctx.fillStyle='#a82c2c';ctx.fillRect(sx+7,sy-1,2,2);
+  }
+}
+function drawCustomPins(ctx,game){
+  const pins=game.state.customPins||[],[cx,cy]=viewCenter(game);
+  for(const pin of pins){
+    const [sx,sy]=w2s(pin.x,pin.y,cx,cy,game.canvas);
+    ctx.fillStyle=pin.color||'#ff4f4b';ctx.beginPath();ctx.arc(sx+8,sy-2,5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+    line(ctx,sx+8,sy+3,sx+8,sy+8,pin.color||'#ff4f4b',2);
+  }
+}
+
 function drawElevation(ctx,game,p){
   const [cx,cy]=viewCenter(game);for(let ring=p.elevation;ring>0;ring--){const radius=7+ring*.8;ctx.strokeStyle=`rgba(7,8,12,${.13+ring*.05})`;ctx.lineWidth=3;ctx.beginPath();for(let i=0;i<=48;i++){const a=i/48*Math.PI*2,x=p.x+Math.cos(a)*radius,y=p.y+Math.sin(a)*radius*.72;const[sx,sy]=w2s(x,y,cx,cy,game.canvas);if(i===0)ctx.moveTo(sx,sy+ring*2);else ctx.lineTo(sx,sy+ring*2)}ctx.stroke()}
 }
@@ -126,7 +185,7 @@ function drawWorldEchoes(ctx,game){
   }
 }
 function drawQuestCompass(ctx,game){
-  const tracked=game.state.trackedQuest;if(!tracked||game.state.mode!=='world')return;const p=game.projects.find(x=>x.id===tracked.projectId);if(!p)return;
+  const tracked=game.state.trackedQuest;if(!tracked||game.state.mode!=='world'||game.state.compassVisible===false)return;const p=game.projects.find(x=>x.id===tracked.projectId);if(!p)return;
   const dx=p.x-game.state.player.x,dy=p.y-game.state.player.y,d=Math.hypot(dx,dy);if(d<7)return;const a=Math.atan2(dy,dx),cx=game.canvas.width/2,cy=game.canvas.height/2,r=Math.min(game.canvas.width,game.canvas.height)*.38,x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r;
   ctx.save();ctx.translate(x,y);ctx.rotate(a+Math.PI/2);ctx.fillStyle='#f5cf72';ctx.strokeStyle='#251b0b';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,-11);ctx.lineTo(7,7);ctx.lineTo(0,4);ctx.lineTo(-7,7);ctx.closePath();ctx.fill();ctx.stroke();ctx.restore();ctx.fillStyle='#07101bdd';ctx.fillRect(x-24,y+12,48,12);ctx.fillStyle='#f5e3af';ctx.font='7px monospace';ctx.textAlign='center';ctx.fillText(`${Math.round(d)} TILE`,x,y+21);
 }
@@ -175,12 +234,19 @@ function drawMiniMap(ctx,game){
   ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
   for(const p of game.projects){if(!game.state.arrivals[p.id]&&!game.state.visited[p.id])continue;const px=cx-r+(p.x/WORLD.w)*r*2,py=cy-r+(p.y/WORLD.h)*r*2;ctx.fillStyle=game.state.waystones[p.id]?'#f7d16b':'#dbe5ef';ctx.beginPath();ctx.arc(px,py,game.state.waystones[p.id]?3.3:2.2,0,Math.PI*2);ctx.fill();}
   for(const e of echoNodes(game.projects)){if(!game.state.echoes?.[e.id])continue;const ex=cx-r+(e.x/WORLD.w)*r*2,ey=cy-r+(e.y/WORLD.h)*r*2;ctx.fillStyle='#71e5d8';ctx.fillRect(ex-1,ey-1,2,2)}
+  for(const pin of (game.state.customPins||[])){const px=cx-r+(pin.x/WORLD.w)*r*2,py=cy-r+(pin.y/WORLD.h)*r*2;ctx.fillStyle=pin.color||'#ff4f4b';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill()}
   const tracked=game.state.trackedQuest&&game.projects.find(p=>p.id===game.state.trackedQuest.projectId);if(tracked){const tx=cx-r+(tracked.x/WORLD.w)*r*2,ty=cy-r+(tracked.y/WORLD.h)*r*2;ctx.strokeStyle='#ffd56f';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(tx,ty,6+Math.sin(game.now*.004),0,Math.PI*2);ctx.stroke()}
-  const px=cx-r+(game.state.player.x/WORLD.w)*r*2,py=cy-r+(game.state.player.y/WORLD.h)*r*2;ctx.fillStyle='#ff5c57';ctx.beginPath();ctx.arc(px,py,3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff3cf';ctx.lineWidth=1;ctx.stroke();ctx.restore();
+  const px=cx-r+(game.state.player.x/WORLD.w)*r*2,py=cy-r+(game.state.player.y/WORLD.h)*r*2;
+  const pDir=game.state.player.dir||4,angle=(pDir-2)*Math.PI/4;
+  ctx.fillStyle='#ffd88833';ctx.beginPath();ctx.moveTo(px,py);ctx.arc(px,py,12,angle-.35,angle+.35);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#ff5c57';ctx.beginPath();ctx.arc(px,py,3.4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#fff3cf';ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle='#f6d88f';ctx.font='bold 6px monospace';ctx.textAlign='center';
+  ctx.fillText('N',cx,cy-r+7);ctx.fillText('S',cx,cy+r-3);ctx.fillText('W',cx-r+6,cy+2);ctx.fillText('E',cx+r-6,cy+2);
+  ctx.restore();
   ctx.fillStyle='#08101bdc';ctx.fillRect(x+30,y+132,92,14);ctx.fillStyle='#ead8a5';ctx.font='7px monospace';ctx.textAlign='center';ctx.fillText((regionAt(game.projects,game.state.player.x,game.state.player.y)?.name||'THE WILDS').toUpperCase(),x+76,y+142);
 }
 export function renderWorld(game){
-  const {ctx,canvas}=game,[cx,cy]=viewCenter(game),[shakeX,shakeY]=cameraOffset(game.camera||{shake:0},game.now);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(shakeX,shakeY);drawBaseGround(ctx,game);drawRiver(ctx,game);drawRoads(ctx,game);drawTraversal(ctx,game);drawDiscoverables(ctx,game);drawWorldEchoes(ctx,game);drawProjects(ctx,game);drawRelationshipSecrets(ctx,game);drawMessenger(ctx,game);const[sx,sy]=w2s(game.state.player.x,game.state.player.y,cx,cy,canvas);drawAvatar(ctx,game,sx,sy);drawProjectForeground(ctx,game);drawSettlementForeground(ctx,game);ctx.restore();drawWeather(ctx,game);drawLighting(ctx,game);drawQuestCompass(ctx,game);drawMiniMap(ctx,game);
+  const {ctx,canvas}=game,[cx,cy]=viewCenter(game),[shakeX,shakeY]=cameraOffset(game.camera||{shake:0},game.now);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(shakeX,shakeY);drawBaseGround(ctx,game);drawRiver(ctx,game);drawRiverFeatures(ctx,game);drawRoads(ctx,game);drawSignposts(ctx,game);drawNoticeboards(ctx,game);drawCustomPins(ctx,game);drawTraversal(ctx,game);drawDiscoverables(ctx,game);drawWorldEchoes(ctx,game);drawProjects(ctx,game);drawRelationshipSecrets(ctx,game);drawMessenger(ctx,game);const[sx,sy]=w2s(game.state.player.x,game.state.player.y,cx,cy,canvas);drawAvatar(ctx,game,sx,sy);drawProjectForeground(ctx,game);drawSettlementForeground(ctx,game);ctx.restore();drawWeather(ctx,game);drawLighting(ctx,game);drawQuestCompass(ctx,game);drawMiniMap(ctx,game);
 }
 function interiorPalette(p){return palettes[p.biome]||palettes.highlands}
 export function renderInterior(game){
@@ -220,6 +286,12 @@ export function interactionTargets(game){
   const targets=[];
   for(const p of game.projects)targets.push({type:'project',project:p,label:'ENTER '+p.interior.toUpperCase(),x:p.x,y:p.y,distance:dist(game.state.player.x,game.state.player.y,p.x,p.y)});
   for(const n of settlementInteractionNodes(game))targets.push({...n,distance:dist(game.state.player.x,game.state.player.y,n.x,n.y)});
+  for(const p of game.projects)targets.push({type:'bulletin',project:p,x:p.x-5.2,y:p.y+4.2,label:`NOTICEBOARD · ${p.name.toUpperCase()}`,distance:dist(game.state.player.x,game.state.player.y,p.x-5.2,p.y+4.2)});
+  for(const s of OVERWORLD_SIGNPOSTS)targets.push({...s,type:'signpost',label:`READ · ${s.title}`,distance:dist(game.state.player.x,game.state.player.y,s.x,s.y)});
+  const fDistW=dist(game.state.player.x,game.state.player.y,RIVER_FERRY.west.x,RIVER_FERRY.west.y);
+  if(fDistW<4)targets.push({type:'ferry',side:'west',label:'RIVER FERRY · CROSS EAST',x:RIVER_FERRY.west.x,y:RIVER_FERRY.west.y,distance:fDistW});
+  const fDistE=dist(game.state.player.x,game.state.player.y,RIVER_FERRY.east.x,RIVER_FERRY.east.y);
+  if(fDistE<4)targets.push({type:'ferry',side:'east',label:'RIVER FERRY · CROSS WEST',x:RIVER_FERRY.east.x,y:RIVER_FERRY.east.y,distance:fDistE});
   for(const e of echoNodes(game.projects))targets.push({...e,type:'echo',label:game.state.echoes?.[e.id]?'REVISIT WORLD ECHO':'LISTEN · WORLD ECHO',distance:dist(game.state.player.x,game.state.player.y,e.x,e.y)});
   for(const f of TRAVERSAL_FEATURES)targets.push({...f,type:'traversal',distance:dist(game.state.player.x,game.state.player.y,f.x,f.y)});
   for(const n of artifactNodes(game))targets.push({...n,type:'artifact',label:game.state.discoveredArtifacts[n.id]?'INSPECT FOUND ARTIFACT':'DISCOVER ARTIFACT',distance:dist(game.state.player.x,game.state.player.y,n.x,n.y)});
@@ -228,3 +300,4 @@ export function interactionTargets(game){
   for(const r of game.relationships){if(!game.state.expeditions[r.id]?.unlocked)continue;const a=game.projects.find(p=>p.id===r.a),b=game.projects.find(p=>p.id===r.b);if(!a||!b)continue;const x=(a.x+b.x)/2,y=(a.y+b.y)/2;targets.push({type:'secret',relationship:r,x,y,label:game.state.secrets[r.id]?'INSPECT HIDDEN ROAD':'DISCOVER HIDDEN ROAD',distance:dist(game.state.player.x,game.state.player.y,x,y)})}
   return targets.sort((a,b)=>a.distance-b.distance);
 }
+

@@ -1,5 +1,5 @@
-let ctx=null,master=null,muted=false,nextNote=0,nextAmbient=0,lastStepAt=0;
-const THEMES={
+let ctx=null,master=null,muted=false,masterVolume=0.42,nextNote=0,nextAmbient=0,lastStepAt=0;
+export const THEMES={
   crossroads:[130.81,196,261.63,392],starsilk:[146.83,220,293.66,440],
   'screen-weasels':[110,164.81,220,329.63],atlas:[196,246.94,293.66,392],
   dash:[174.61,220,261.63,349.23],orbital:[98,146.83,196,293.66]
@@ -11,9 +11,30 @@ function tone(freq,when,duration=.6,type='sine',volume=.025){
   o.connect(g);o.start(when);o.stop(when+duration+.04);
 }
 export async function initAudio(){
-  if(ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;ctx=new AC();master=ctx.createGain();master.gain.value=.42;master.connect(ctx.destination);await ctx.resume();nextNote=ctx.currentTime+.1;
+  if(ctx)return;const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
+  ctx=new AC();master=ctx.createGain();
+  const savedVol=Number(localStorage.getItem('worldwalker-volume'));
+  if(!isNaN(savedVol)&&savedVol>=0&&savedVol<=1)masterVolume=savedVol;
+  master.gain.value=muted?0:masterVolume;master.connect(ctx.destination);
+  if(ctx.state==='suspended'){
+    const unlock=()=>{if(ctx&&ctx.state==='suspended')ctx.resume();window.removeEventListener('pointerdown',unlock);window.removeEventListener('keydown',unlock)};
+    window.addEventListener('pointerdown',unlock);window.addEventListener('keydown',unlock);
+  }
+  await ctx.resume().catch(()=>{});nextNote=ctx.currentTime+.1;
 }
-export function setMuted(v){muted=!!v;if(master)master.gain.setTargetAtTime(muted?0:.42,ctx.currentTime,.03);return muted}
+export function setVolume(v){
+  masterVolume=Math.max(0,Math.min(1,Number(v)||0));
+  try{localStorage.setItem('worldwalker-volume',String(masterVolume))}catch{}
+  if(master&&!muted&&ctx)master.gain.setTargetAtTime(masterVolume,ctx.currentTime,.03);
+  return masterVolume;
+}
+export function getVolume(){return masterVolume}
+export function setMuted(v){
+  muted=!!v;
+  try{localStorage.setItem('worldwalker-muted',String(muted))}catch{}
+  if(master&&ctx)master.gain.setTargetAtTime(muted?0:masterVolume,ctx.currentTime,.03);
+  return muted;
+}
 export function toggleMuted(){return setMuted(!muted)}
 export function isMuted(){return muted}
 function regionFor(game){return game.state.interiorProjectId?game.projects.find(x=>x.id===game.state.interiorProjectId):game.projects.find(x=>Math.hypot(game.state.player.x-x.x,game.state.player.y-x.y)<9.5)}
@@ -21,7 +42,9 @@ function themeFor(game){if(game.state.mode==='chronicle')return THEMES.crossroad
 function ambient(game){
   if(!ctx||muted||ctx.currentTime<nextAmbient)return;const p=regionFor(game),id=p?.id||'crossroads',now=ctx.currentTime+.01;
   const bank={crossroads:[196,'sine'],starsilk:[293.66,'sine'],'screen-weasels':[329.63,'square'],atlas:[392,'sine'],dash:[261.63,'triangle'],orbital:[146.83,'sawtooth']};const [f,type]=bank[id]||bank.crossroads;
-  tone(f,now,.9,type,.006);if(id==='starsilk'||id==='orbital')tone(f*2,now+.22,.45,'sine',.004);nextAmbient=ctx.currentTime+4.5+Math.random()*4;
+  tone(f,now,.9,type,.006);if(id==='starsilk'||id==='orbital')tone(f*2,now+.22,.45,'sine',.004);
+  if(id==='atlas'){tone(f*.75,now+.45,.7,'sine',.003)}
+  nextAmbient=ctx.currentTime+4.5+Math.random()*4;
 }
 export function audioTick(game){
   if(!ctx||muted||ctx.state!=='running')return;ambient(game);if(ctx.currentTime<nextNote)return;
@@ -31,8 +54,12 @@ export function audioTick(game){
   if(step%2===0)tone(root/2,nextNote,.78,'sine',.012);nextNote=ctx.currentTime+.72;
 }
 export function stinger(kind='discover'){
-  if(!ctx||muted)return;const now=ctx.currentTime+.01,map={discover:[523.25,659.25,783.99],waystone:[392,523.25,783.99],blocked:[220,207.65,196],enter:[261.63,329.63,392],secret:[440,554.37,659.25,880]};
+  if(!ctx||muted)return;const now=ctx.currentTime+.01,map={discover:[523.25,659.25,783.99],waystone:[392,523.25,783.99],blocked:[220,207.65,196],enter:[261.63,329.63,392],secret:[440,554.37,659.25,880],rest:[329.63,392,523.25,659.25]};
   (map[kind]||map.discover).forEach((f,i)=>tone(f,now+i*.07,.32,'triangle',.035));
+}
+export function previewTheme(themeId='crossroads'){
+  if(!ctx||muted)return;const notes=THEMES[themeId]||THEMES.crossroads,now=ctx.currentTime+.02;
+  notes.forEach((f,i)=>tone(f,now+i*.18,.6,'triangle',.03));
 }
 export function movementAudio(game,moving,sprint=false){
   if(!ctx||muted||!moving||ctx.currentTime-lastStepAt<(sprint?.18:.27))return;lastStepAt=ctx.currentTime;
@@ -40,3 +67,4 @@ export function movementAudio(game,moving,sprint=false){
   const surface=inWater?'water':p?.biome||'wild';const bank={water:[118,'sine'],obsidian:[210,'triangle'],scrapyard:[285,'square'],highlands:[142,'sine'],market:[178,'square'],orbital:[340,'triangle'],wild:[132,'sine']};
   const [f,type]=bank[surface]||bank.wild;tone(f,ctx.currentTime+.005,.07,type,inWater?.012:.008);if(inWater)tone(f*1.7,ctx.currentTime+.018,.05,'sine',.006);
 }
+

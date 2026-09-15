@@ -30,6 +30,11 @@ export function drawInteriorScene(ctx,p,ox,oy,tw,th){
   drawAsset(ctx,l.rug,ox+tw/2-80,oy+th/2-52,160,104,.72);
   drawAsset(ctx,'interior_wall_panel.png',ox+8,oy+8,tw-16,58,.78);
   for(const [name,x,y,w,h] of l.props)drawAsset(ctx,name,ox+x,oy+y,w,h,.96);
-  for(const n of INTERIOR_INTERACTIVES[p.id]||[]){ctx.fillStyle='#f6c65baa';ctx.fillRect(ox+n.x*16-2,oy+n.y*16-7,4,4);ctx.fillStyle='#fff1b455';ctx.fillRect(ox+n.x*16-1,oy+n.y*16-10,2,2)}
+  for(const n of INTERIOR_INTERACTIVES[p.id]||[]){
+    ctx.fillStyle='#f6c65baa';ctx.fillRect(ox+n.x*16-2,oy+n.y*16-7,4,4);
+    ctx.fillStyle='#fff1b455';ctx.fillRect(ox+n.x*16-1,oy+n.y*16-10,2,2);
+    ctx.strokeStyle='rgba(246,198,91,0.25)';ctx.beginPath();ctx.arc(ox+n.x*16,oy+n.y*16-5,6,0,Math.PI*2);ctx.stroke();
+  }
   drawAsset(ctx,'interior_door.png',ox+tw/2-33,oy+th-86,66,82,1);
 }
+

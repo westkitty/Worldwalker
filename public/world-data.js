@@ -57,6 +57,33 @@ export const TRAVERSAL_FEATURES = [
   { id:'orbital-catwalk', kind:'climb', label:'SERVICE CATWALK', x:43.7, y:46.4, to:{x:46.3,y:44.4}, hint:'C · CLIMB' }
 ];
 
+export const OVERWORLD_SIGNPOSTS = [
+  { id:'sign-crossroads', x:46.5, y:55.2, title:'CROSSROADS JUNCTION', text:'NORTH: Meridian Gantry & Orbital Station\nWEST: Counting Hall of Dash\nEAST: Signal Burrow of Screen Weasels' },
+  { id:'sign-starsilk-pass', x:26.5, y:22.0, title:'OBSIDIAN PASS', text:'NORTH-WEST: Filament Spire (Starsilk Archive Citadel)\nSOUTH-EAST: Meridian Station' },
+  { id:'sign-highland-ascent', x:57.0, y:28.5, title:'HIGHLANDS ASCENT', text:'NORTH-EAST: Cartographer Observatory (Atlas of One)\nSOUTH-WEST: Meridian Station' },
+  { id:'sign-scrapyard-fork', x:67.5, y:56.5, title:'SCRAPYARD FORK', text:'EAST: Signal Burrow & Cursor Portal\nWEST: The Crossroads & Grand River' },
+  { id:'sign-dash-dock', x:36.5, y:64.0, title:'LEDGER QUAYSIDE', text:'SOUTH-WEST: Counting Hall (Dash Ledger)\nNORTH-EAST: The Crossroads' }
+];
+
+export const RIVER_STEPPING_STONES = [
+  { id:'step-north', x:38.0, y:26.5, label:'NORTH STEPPING STONES' },
+  { id:'step-mid', x:37.8, y:35.5, label:'MID RIVER CROSSING' },
+  { id:'step-south', x:38.2, y:54.0, label:'FERRY STEPPING STONES' }
+];
+
+export const RIVER_FERRY = {
+  west: { x:36.2, y:43.0 },
+  east: { x:40.2, y:43.0 }
+};
+
+export const SETTLEMENT_BULLETINS = {
+  starsilk: { title:'ARCHIVE REGISTER', lines:['Phase 12 canon stabilized and sealed.','The Filament Spire monitors provenance.','Quiet observation is respected.'] },
+  'screen-weasels': { title:'SIGNAL BENCH NOTICE', lines:['Cursor Portal tested and verified on CYD #1.','CYD #2 hardware assembly remains deferred.','Sound peripherals physically untested.'] },
+  atlas: { title:'CARTOGRAPHER POST', lines:['Map Chamber open for self-directed traversal.','Phase 6 handoff observation remains open.','CAMPAIGN_COMPLETED dispatch pending design decision.'] },
+  dash: { title:'COUNTING HOUSE BOARD', lines:['Transaction journals maintained on disk.','Operational-state ledger status currently unknown.','Audit wall records receipts with zero fiction.'] },
+  orbital: { title:'MERIDIAN GANTRY LOG', lines:['WebGL threejs station renderer verified.','Human interactive gameplay review awaiting feedback.','Gate D1 receiver lighting architecture pending.'] }
+};
+
 export const MANUAL_PAGES = [
   { id:'waystones', title:'I · WAYSTONES', x:47, y:58, text:'Walking builds spatial memory. Waystones exist so memory never becomes drudgery. Fast travel is available after a place is known.' },
   { id:'rumors', title:'II · RUMORS', x:11, y:20, text:'A quest begins as a rumor until the place itself has been visited. Worldwalker does not convert hearsay into project truth.' },

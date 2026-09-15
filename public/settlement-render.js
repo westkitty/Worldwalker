@@ -27,9 +27,18 @@ export function drawSettlement(ctx,game,p){
   for(const [,dx,dy] of s.structures){const[sx,sy]=w2s(p.x+dx,p.y+dy,cx,cy,game.canvas);ctx.strokeStyle=(pathTone[p.id]||'#776a54')+'bb';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(mx+8,my+8);ctx.lineTo(sx+8,sy+8);ctx.stroke();ctx.strokeStyle='#f4dda133';ctx.lineWidth=2;ctx.stroke()}
   ctx.restore();
   const band=settlementTimeBand();
-  for(const [name,dx,dy,w,h] of s.structures){const[sx,sy]=w2s(p.x+dx,p.y+dy,cx,cy,game.canvas);drawAsset(ctx,name,sx-w/2,sy-h+12,w,h,1);if(band==='evening'||band==='night'){const g=ctx.createRadialGradient(sx,sy-8,2,sx,sy-8,23);g.addColorStop(0,'#ffd47a66');g.addColorStop(1,'#ffd47a00');ctx.fillStyle=g;ctx.fillRect(sx-24,sy-32,48,48)}}
+  for(const [name,dx,dy,w,h] of s.structures){const[sx,sy]=w2s(p.x+dx,p.y+dy,cx,cy,game.canvas);drawAsset(ctx,name,sx-w/2,sy-h+12,w,h,1);if(band==='evening'||band==='night'){const flicker=Math.sin(game.now*.005+p.x)*2;const g=ctx.createRadialGradient(sx,sy-8,2,sx,sy-8,24+flicker);g.addColorStop(0,'#ffd47a77');g.addColorStop(1,'#ffd47a00');ctx.fillStyle=g;ctx.fillRect(sx-28,sy-36,56,56)}}
   s.residents.forEach((r,i)=>{const q=residentPosition(game,p,r,i),[sx,sy]=w2s(q.x,q.y,cx,cy,game.canvas),bob=Math.sin(game.now*.004+i)*1.1;drawAsset(ctx,q.name,sx-10,sy-27+bob,20,29,.96)});
-  const[sx,sy]=w2s(p.x+7.1,p.y+6.4,cx,cy,game.canvas);drawAsset(ctx,'fx_waystone.png',sx-14,sy-22,28,32,p.condition==='unknown'?.42:.9);
+  const[sx,sy]=w2s(p.x+7.1,p.y+6.4,cx,cy,game.canvas);
+  const attuned=Boolean(game.state.waystones[p.id]),distPlayer=Math.hypot(game.state.player.x-(p.x+7.1),game.state.player.y-(p.y+6.4));
+  if(!attuned&&distPlayer<7){
+    const pulse=(game.now*.003)%1;
+    ctx.strokeStyle=`rgba(246,198,91,${(1-pulse)*0.7})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(sx,sy-6,14+pulse*24,0,Math.PI*2);ctx.stroke();
+  }else if(attuned){
+    ctx.fillStyle='rgba(246,198,91,0.18)';ctx.beginPath();ctx.arc(sx,sy-6,16,0,Math.PI*2);ctx.fill();
+  }
+  drawAsset(ctx,'fx_waystone.png',sx-14,sy-22,28,32,p.condition==='unknown'?.42:.9);
+
   const t=game.now*.001;ctx.save();
   if(p.condition==='blocked'){
     ctx.strokeStyle='#ef665dcc';ctx.lineWidth=3;for(let i=-2;i<=2;i++){const ox=mx+i*18;ctx.beginPath();ctx.moveTo(ox,my+66);ctx.lineTo(ox+11,my+50);ctx.stroke();ctx.beginPath();ctx.moveTo(ox+11,my+66);ctx.lineTo(ox,my+50);ctx.stroke();}

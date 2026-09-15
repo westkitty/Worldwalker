@@ -1,6 +1,6 @@
 {
   "name": "worldwalker",
-  "version": "0.28.0",
+  "version": "0.29.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -12,8 +12,9 @@
     "test:immersion": "node scripts/immersion-contract.mjs",
     "test:presence": "node scripts/presence-contract.mjs",
     "test:adventure": "node scripts/adventure-contract.mjs",
+    "test:system": "node scripts/system-contract.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure"
+    "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure && npm run test:system"
   },
   "engines": {
     "node": ">=20"
