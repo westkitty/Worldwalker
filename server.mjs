@@ -373,11 +373,19 @@ async function serveStatic(req, res, url) {
     res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' });
     return res.end('Bad Request');
   }
-  const file = path.normalize(path.join(PUBLIC, rel));
-  if (!(file === path.join(PUBLIC, 'index.html') || safeInside(PUBLIC, file))) {
+  let file = path.normalize(path.join(PUBLIC, rel));
+  if (!(file === path.join(PUBLIC, 'index.html') || safeInside(PUBLIC, file) || file === PUBLIC)) {
     res.writeHead(403);
     return res.end('Forbidden');
   }
+  // directory -> try index.html
+  try{
+    const st=await fsp.stat(file);
+    if(st.isDirectory()){
+      const idx=path.join(file,'index.html');
+      if(await exists(idx)) file=idx;
+    }
+  }catch{}
   if (!await streamFile(req, res, file, 'no-cache')) {
     res.writeHead(404);
     res.end('Not found');

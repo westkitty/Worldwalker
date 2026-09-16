@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLACK BOX AQUARIUM</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="titleScreen" class="overlay">
+  <div class="titleContent">
+    <div class="titleArt">
+      <div class="probe">◍</div>
+      <h1>BLACK BOX AQUARIUM</h1>
+      <p class="subtitle">A probe returned from deep space carrying twelve drops of alien ocean.<br>You have been instructed to keep them alive.<br><span class="dim">Nobody specified what "them" means.</span></p>
+    </div>
+    <div class="titleButtons">
+      <button id="btnCampaign" class="primary">BEGIN RESEARCH // CAMPAIGN</button>
+      <button id="btnSandbox">SANDBOX TANK</button>
+      <button id="btnLoadSave">LOAD SAVED TANK</button>
+      <button id="btnTutorial">FIELD MANUAL</button>
+    </div>
+    <div class="titleLog">
+      <pre id="titleLogText">SYSTEMS: NOMINAL
+TANK: STERILIZED
+SAMPLE: 12 DROPS / UNKNOWN VIABILITY
+INSTRUCTION: OBSERVE, DO NOT DESIGN
+NOTE: EVOLUTION IS NOT A FEATURE. IT IS A CONSEQUENCE.
+      </pre>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">BLACK BOX <span>AQUARIUM</span> <small id="buildTag">v0.9 // LOCAL ONLY</small></div>
+    <div class="headerControls">
+      <button id="pauseBtn" title="Pause">⏸</button>
+      <div class="speedGroup">
+        <button data-speed="0.5">0.5x</button>
+        <button data-speed="1" class="active">1x</button>
+        <button data-speed="2">2x</button>
+        <button data-speed="4">4x</button>
+      </div>
+      <button id="saveBtn">SAVE</button>
+      <button id="loadBtn">LOAD</button>
+      <button id="resetBtn">RESET</button>
+      <button id="audioBtn">🔊</button>
+      <button id="manualBtn">?</button>
+    </div>
+    <div class="popCap">POP <span id="popCount">0</span>/<span id="popCap">200</span> <span id="perfIndicator"></span></div>
+  </header>
+
+  <div id="main">
+    <aside id="leftPanel">
+      <section class="panel">
+        <h3>ENVIRONMENT</h3>
+        <div class="envGrid">
+          <label>Temp <span id="tempVal">20°C</span><input id="tempSlider" type="range" min="5" max="35" step="0.5" value="20"></label>
+          <label>Light <span id="lightVal">60</span><input id="lightSlider" type="range" min="0" max="100" value="60"></label>
+          <label>O₂ Pump <span id="oxyVal">50</span><input id="oxySlider" type="range" min="0" max="100" value="50"></label>
+          <label>pH <span id="phVal">7.0</span><input id="phSlider" type="range" min="5.5" max="8.5" step="0.1" value="7.0"></label>
+          <label>Nutrients <span id="nutVal">50</span><input id="nutSlider" type="range" min="0" max="100" value="50"></label>
+          <label>Filter <span id="filtVal">50</span><input id="filtSlider" type="range" min="0" max="100" value="50"></label>
+        </div>
+        <canvas id="envGraph" width="260" height="60"></canvas>
+        <div class="envReadout">
+          <div>O₂: <span id="o2Read">--</span>%</div>
+          <div>Contam: <span id="contamRead">--</span>%</div>
+          <div>pH drift: <span id="phRead">--</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>FEEDING / CHEMISTRY</h3>
+        <div class="toolGrid">
+          <button class="tool" data-food="algae">🟢 Algae Wafer</button>
+          <button class="tool" data-food="protein">🔴 Protein Pellet</button>
+          <button class="tool" data-food="detritus">🟤 Detritus Cloud</button>
+          <button class="tool" data-food="nutrient">💠 Nutrient Burst</button>
+          <button class="tool" data-food="clean">🧼 Decontaminate</button>
+          <button class="tool" data-food="o2">💨 O₂ Burst</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>HABITAT</h3>
+        <div class="toolGrid">
+          <button class="tool" data-habitat="rock">🪨 Place Rock</button>
+          <button class="tool" data-habitat="kelp">🌿 Kelp Forest</button>
+          <button class="tool" data-habitat="shell">🐚 Shell Bed</button>
+          <button class="tool" data-habitat="light">💡 Focus Light</button>
+          <button class="tool" data-habitat="clear">🧹 Clear Habitat</button>
+        </div>
+        <div class="breedingTank">
+          <h4>ISOLATION TANK (Selective Breeding)</h4>
+          <canvas id="breedCanvas" width="240" height="120"></canvas>
+          <div class="breedControls">
+            <button id="breedBtn">Attempt Cross</button>
+            <button id="clearBreedBtn">Clear</button>
+            <span id="breedInfo">Drop 2 organisms here</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>ORGANISM INTRO</h3>
+        <div class="toolGrid">
+          <button class="tool" data-intro="producer">Seed Producers</button>
+          <button class="tool" data-intro="grazer">Introduce Grazers</button>
+          <button class="tool" data-intro="filter">Introduce Filters</button>
+          <button class="tool" data-intro="predator">Introduce Predator</button>
+          <button class="tool" data-intro="random">Random Drop</button>
+          <button class="tool" data-intro="cull">Cull Selected</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>EVENTS</h3>
+        <div id="eventLog" class="log"></div>
+        <div class="toolGrid">
+          <button class="tool" data-event="oxygen">Trigger O₂ Crash</button>
+          <button class="tool" data-event="fungal">Fungal Bloom</button>
+          <button class="tool" data-event="heater">Heater Failure</button>
+          <button class="tool" data-event="spores">Unknown Spores</button>
+          <button class="tool" data-event="surge">Repro Surge</button>
+          <button class="tool" data-event="malfunction">Malfunction</button>
+        </div>
+      </section>
+    </aside>
+
+    <section id="center">
+      <div id="tankWrapper">
+        <canvas id="tank" width="900" height="600"></canvas>
+        <div id="tankOverlay">
+          <div id="selectionRing"></div>
+          <div id="tooltip"></div>
+        </div>
+        <div id="tankEffects">
+          <div id="contamVignette"></div>
+          <div id="lightBeam"></div>
+        </div>
+        <div id="milestonePopup" class="hidden">
+          <h2 id="milestoneTitle"></h2>
+          <p id="milestoneDesc"></p>
+          <button id="milestoneClose">ACKNOWLEDGE</button>
+        </div>
+      </div>
+      <div id="centerFooter">
+        <div id="populationBar"></div>
+        <div id="alertBar"></div>
+      </div>
+    </section>
+
+    <aside id="rightPanel">
+      <section class="panel" id="inspectorPanel">
+        <h3>ORGANISM INSPECTOR</h3>
+        <div id="inspectorEmpty">No organism selected.<br>Click a creature in tank.<br><br><span class="dim">Observation unlocks traits. Lineage reveals why it differs.</span></div>
+        <div id="inspectorContent" class="hidden">
+          <canvas id="inspectorCanvas" width="260" height="160"></canvas>
+          <div id="inspectorMeta"></div>
+          <div id="inspectorTraits"></div>
+          <div id="inspectorLineage"></div>
+          <div id="inspectorActions">
+            <button id="trackLineageBtn">Track Lineage</button>
+            <button id="isolateBtn">Isolate → Breed Tank</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>RESEARCH NOTEBOOK</h3>
+        <div class="tabs">
+          <button data-tab="species" class="active">Species</button>
+          <button data-tab="traits">Traits</button>
+          <button data-tab="graphs">Graphs</button>
+          <button data-tab="milestones">Milestones</button>
+        </div>
+        <div id="tabSpecies" class="tabContent active">
+          <div id="speciesList"></div>
+        </div>
+        <div id="tabTraits" class="tabContent">
+          <div id="traitList"></div>
+        </div>
+        <div id="tabGraphs" class="tabContent">
+          <canvas id="popGraph" width="260" height="120"></canvas>
+          <canvas id="traitGraph" width="260" height="80"></canvas>
+        </div>
+        <div id="tabMilestones" class="tabContent">
+          <div id="milestoneList"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>LINEAGE BROWSER</h3>
+        <canvas id="lineageCanvas" width="260" height="200"></canvas>
+        <div id="lineageInfo" class="dim">Select organism to view ancestry. Mutations highlighted.</div>
+      </section>
+    </aside>
+  </div>
+
+  <div id="endingScreen" class="overlay hidden">
+    <div class="titleContent">
+      <h1>DISCOVERY: CHORUS MIND</h1>
+      <p id="endingText"></p>
+      <div id="endingStats"></div>
+      <button id="continueSandboxBtn" class="primary">CONTINUE IN SANDBOX</button>
+      <button id="endingCloseBtn">CLOSE</button>
+    </div>
+  </div>
+
+  <div id="manualOverlay" class="overlay hidden">
+    <div class="manualContent">
+      <h2>FIELD MANUAL // BLACK BOX AQUARIUM</h2>
+      <div class="manualGrid">
+        <div>
+          <h4>Premise</h4>
+          <p>12 drops of alien ocean. Keep them alive. Evolution is emergent, not scripted. Traits are heritable. Appearance derives from genome. No creature is pre-designed.</p>
+          <h4>Environment</h4>
+          <p>Temperature, Oxygen, pH, Light, Nutrients, Contamination interact. Producers need light+nuts. Consumers need oxygen. Contamination kills. Filter mitigates.</p>
+          <h4>Ecology</h4>
+          <ul>
+            <li>Producer: photosynthesizes, base of chain</li>
+            <li>Grazer: eats producers</li>
+            <li>Filter: eats nutrients/particles</li>
+            <li>Scavenger: eats detritus</li>
+            <li>Predator: hunts others</li>
+            <li>Parasite/Symbiote: attaches, drains or shares</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Traits</h4>
+          <p>size, speed, metabolism, tempPref, armor, sensory, reproRate, aggression, social, bodyPlan, fins, appendages, shell, eyes, mouth, markings, biolum. All heritable with mutation.</p>
+          <h4>Player Tools</h4>
+          <p>Influence, not command. Change environment, feed, place habitat, introduce/cull, use isolation tank for selective breeding. Selection pressure alters population.</p>
+          <h4>Research</h4>
+          <p>Observation unlocks traits. Species catalog clusters similar genomes. Graphs show population. Lineage shows mutations.</p>
+          <h4>Milestones</h4>
+          <ol id="manualMilestones"></ol>
+        </div>
+      </div>
+      <button id="manualClose">CLOSE MANUAL</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module" src="aquarium.js"></script>
+</body>
+</html>
