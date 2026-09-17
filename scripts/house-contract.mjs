@@ -2,6 +2,8 @@
    node scripts/house-contract.mjs            (all tests)
    node scripts/house-contract.mjs --only=fears   (subset)         */
 import { readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { Game, DEFAULT_META } from '../public/house/js/sim/game.js';
 import { memoryStorage as mem, runNight } from './house-sim.mjs';
 import { buildWorld, findRoute, spawnStimulus, doorUsable } from '../public/house/js/sim/world.js';
@@ -13,6 +15,7 @@ import { ARCH_BY_ID } from '../public/house/js/data/intruders.js';
 const DT = 1 / 20;
 const round = v => Math.round(v);
 const round1 = v => Math.round(v * 10) / 10;
+const SIM = fileURLToPath(new URL('./house-sim.mjs', import.meta.url));
 const results = [];
 let failures = 0;
 
@@ -828,6 +831,38 @@ await T('objectives_finish_when_unopposed', () => {
   assert(!bad.length, bad.slice(0, 4).join(' | '));
   return `nights 1/3/4/6 x ${seeds.length} seeds, unopposed, all objective: ` +
     [1, 3, 4, 6].map(n => `n${n}≤${Math.max(...seen[n])}s`).join(' ');
+});
+
+await T('cli_rejects_impossible_input', () => {
+  /* house-sim.mjs is a documented entry point (README, npm run house:sim). asking it for a
+     night that does not exist used to die on an unhandled TypeError, --seconds=abc used to
+     print a dawn verdict for a night that simulated zero ticks, and --seed=junk used to
+     silently become a fixed seed. the CLI must refuse all of those with a usage error, and
+     the harness must refuse out-of-range nights loudly rather than silently clamping them
+     onto the last night. */
+  const maxN = SCENARIOS.length - 1;
+  const spike = (flags) => spawnSync(process.execPath, [SIM, ...flags, '--quiet'], { encoding: 'utf8' });
+  for (const bad of ['--night=6', '--night=-1', '--night=99', '--night=abc']) {
+    const r = spike([bad]);
+    assert(r.status === 2, `${bad}: expected usage exit 2, got ${r.status}\n${r.stderr.slice(0, 200)}`);
+    assert(r.stderr.includes(`--night=0..${maxN}`), `${bad}: stderr does not name the valid range`);
+    assert(!r.stderr.includes('TypeError') && !r.stdout.includes('TypeError'), `${bad}: crashed instead of refusing`);
+  }
+  const secs = spike(['--night=0', '--seconds=abc']);
+  assert(secs.status === 2 && secs.stderr.includes('--seconds'), '--seconds=abc must be refused, not run');
+  assert(!secs.stdout.includes('"t"'), '--seconds=abc printed a verdict for a zero-tick night');
+  const seeded = spike(['--night=0', '--seed=junk', '--seconds=1']);
+  assert(seeded.status === 2 && seeded.stderr.includes('--seed'), '--seed=junk must be refused');
+  const ok = spike(['--night=0', '--seconds=1']);
+  assert(ok.status === 0, `valid invocation failed: ${ok.stderr.slice(0, 200)}`);
+  assert(/"t":\s*1\b/.test(ok.stdout), 'valid invocation did not simulate its one second');
+  let threw = null;
+  try { runNight({ night: 99, seconds: 10 }); } catch (e) { threw = e; }
+  assert(threw && threw.message.includes(`0..${maxN}`), `runNight(99) must throw a range error (it used to silently run the last night): ${threw && threw.message}`);
+  let threwS = null;
+  try { runNight({ night: 0, seconds: NaN }); } catch (e) { threwS = e; }
+  assert(threwS && threwS.message.includes('seconds'), 'runNight(seconds=NaN) must throw (it used to print a zero-tick dawn)');
+  return `impossible nights/seconds/seed refused with exit 2 and a range hint; valid run still simulates; harness throws instead of clamping`;
 });
 
 await T('ai_contract_members_exist', () => {

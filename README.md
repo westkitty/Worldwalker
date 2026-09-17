@@ -54,7 +54,7 @@ npm run validate
 npm run smoke
 ```
 
-`npm run validate` checks JavaScript syntax across all modules plus the 20-feature structural contract, source-evidence model, game-feel contract, immersion contract, v0.23 presence contract, v0.28 adventure contract, v0.29 system contract, the 100-item project uplift contract (`test:uplift`), and the 28-test simulation contract of the house game (`test:house`). `npm run smoke` checks the read-only HTTP API (supporting dual live-network and in-process request execution) and five-region snapshot contract. See `docs/IMPROVEMENT_LEDGER.md` for the complete 101-item improvement matrix.
+`npm run validate` checks JavaScript syntax across all modules plus the 20-feature structural contract, source-evidence model, game-feel contract, immersion contract, v0.23 presence contract, v0.28 adventure contract, v0.29 system contract, the 100-item project uplift contract (`test:uplift`), and the 29-test simulation contract of the house game (`test:house`). `npm run smoke` checks the read-only HTTP API (supporting dual live-network and in-process request execution) and five-region snapshot contract. See `docs/IMPROVEMENT_LEDGER.md` for the complete 101-item improvement matrix.
 
 ## Companion games on this server
 

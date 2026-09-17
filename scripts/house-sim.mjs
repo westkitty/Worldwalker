@@ -1,7 +1,8 @@
 /* Headless harness for THE HOUSE THAT HUNTS BACK.
    Runs whole nights of the real simulation with no DOM, prints traces, and asserts
    the acceptance behaviours.  Usage:
-     node scripts/house-sim.mjs [--night=0] [--passive] [--haunt] [--quiet] [--seconds=300]
+     node scripts/house-sim.mjs [--night=0..5] [--passive] [--haunt] [--quiet] [--seconds=300]
+   (--night is a 0-based index into the six nights: 0 = night 1, 5 = night 6)
 */
 import { Game, DEFAULT_META, loadMeta, saveMeta, readRun, writeRun, SAVE_KEY } from '../public/house/js/sim/game.js';
 import { SCENARIOS } from '../public/house/js/data/scenarios.js';
@@ -19,6 +20,10 @@ const quiet = !!args.quiet;
 const log = (...a) => { if (!quiet) console.log(...a); };
 
 export function runNight({ night = 0, seed = 1234, seconds = 320, passive = true, plan = null, meta, storage, onTick } = {}) {
+  /* refuse impossible input loudly: Game.reset clamps the scenario index, so an out-of-range
+     night would otherwise silently become the last night, and NaN seconds a zero-tick dawn */
+  if (!Number.isInteger(night) || night < 0 || night >= SCENARIOS.length) throw new Error(`runNight: night ${night} is not an index in 0..${SCENARIOS.length - 1}`);
+  if (!Number.isFinite(seconds) || seconds < 0) throw new Error(`runNight: seconds ${seconds} is not a non-negative number`);
   const store = storage || memoryStorage();
   const events = [];
   const g = new Game({ meta: meta || DEFAULT_META(), storage: store, scenario: night, seed, onEvent: (t, d) => events.push([t, g.t, d?.who?.name || d?.room || d?.id || '']) });
@@ -67,10 +72,21 @@ export const HAUNT_PLAN = (g) => {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const night = Number(args.night || 0);
   const seconds = Number(args.seconds || 320);
+  const seed = Number(args.seed || 1234);
+  const maxN = SCENARIOS.length - 1;
+  const usage = (msg) => {
+    console.error(`house-sim: ${msg}`);
+    console.error(`usage: node scripts/house-sim.mjs [--night=0..${maxN}] [--haunt|--passive] [--quiet] [--seconds=N] [--seed=N]`);
+    console.error(`  --night is a 0-based index into the ${SCENARIOS.length} nights: 0 = night 1, ${maxN} = night ${SCENARIOS.length}`);
+    process.exit(2);
+  };
+  if (!Number.isInteger(night) || night < 0 || night > maxN) usage(`--night=${args.night} is not a night index in 0..${maxN}`);
+  if (!Number.isFinite(seconds) || seconds < 0) usage(`--seconds=${args.seconds} is not a non-negative number`);
+  if (!Number.isFinite(seed)) usage(`--seed=${args.seed} is not a number`);
   const passive = !!args.passive || !args.haunt;
   const plan = passive ? null : (g, t) => { if (Math.round(t * 20) % 90 === 0) HAUNT_PLAN(g); };
   log(`\n=== NIGHT ${night + 1}: ${SCENARIOS[night].name} | ${passive ? 'passive watch' : 'house haunts back'}, ${seconds}s ===`);
-  const { game, trace, err, events } = runNight({ night, seconds, seed: Number(args.seed || 1234), passive, plan });
+  const { game, trace, err, events } = runNight({ night, seconds, seed, passive, plan });
   if (err) { console.error('FATAL', err); process.exit(1); }
   log('\n-- movement/fear trace (every 10s) --');
   trace.forEach(t => log('  ' + t));

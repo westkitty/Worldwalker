@@ -28,7 +28,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 
 ## Companion games on this server
 Two self-contained browser games are served alongside the Worldwalker JRPG. Neither is part of the Worldwalker simulation, neither reads or mutates the five source projects, and both are plain ES modules with no build step and no runtime dependencies:
-- `public/house/` — The House That Hunts Back (`/house/`), a reverse-horror strategy game in which the player is the haunted house. Verified by `npm run test:house` (28 simulation-contract tests and 40 runtime checks, plus a real-DOM check that self-skips when the optional `jsdom` dev package is absent; part of `npm run validate`). See `public/house/README.md`.
+- `public/house/` — The House That Hunts Back (`/house/`), a reverse-horror strategy game in which the player is the haunted house. Verified by `npm run test:house` (29 simulation-contract tests and 40 runtime checks, plus a real-DOM check that self-skips when the optional `jsdom` dev package is absent; part of `npm run validate`). See `public/house/README.md`.
 - `public/blackbox/` — Black Box Aquarium (`/blackbox/`), a systemic alien ecosystem simulation. Verified by `node scripts/validate-aquarium.mjs`. See `public/blackbox/EVIDENCE.md`.
 
 ## Active invariants

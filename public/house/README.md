@@ -55,7 +55,7 @@ public/house/
     main.js               boot, input (mouse/keys/gamepad), RAF loop, autosave
 scripts/
   house-sim.mjs           headless night runner: node scripts/house-sim.mjs --night=5 --haunt
-  house-contract.mjs      28 acceptance tests against the real sim
+  house-contract.mjs      29 acceptance tests against the real sim
   house-runtime.mjs       40 checks that drive the real renderer/audios/UI with fakes
   house-dom.mjs           14 checks in a real DOM (needs `npm i --no-save jsdom`, else self-skips)
 ```
@@ -79,6 +79,9 @@ because the house's best tricks are things you should be able to see coming.
 npm run test:house          # contract + runtime + (optional) real-DOM
 node scripts/house-sim.mjs --night=3 --haunt --seconds=300
 ```
+
+(`--night` is a 0-based index into the six nights — `0` = night 1, `5` = night 6 — and the
+runner refuses out-of-range values with a usage error rather than guessing.)
 
 The contract suite is the one to trust for gameplay: it asserts the map is walkable room to
 room, that every power changes the world in a perceivable way, that nobody can be left standing
