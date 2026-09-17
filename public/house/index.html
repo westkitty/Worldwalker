@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="house">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The House That Hunts Back</title>
+<meta name="description" content="A systemic reverse-horror strategy game: you are the haunted house. Rooms, fear, evidence, and a house that learns.">
+<meta name="color-scheme" content="dark">
+<link rel="stylesheet" href="house.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0d12'/%3E%3Cpath d='M6 15 16 6l10 9v11H6z' fill='none' stroke='%23e0a13a' stroke-width='2'/%3E%3Cpath d='M13 26v-6h6v6' stroke='%23b8434a' stroke-width='2' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+<div id="app">
+  <header id="topbar">
+    <canvas id="crest" class="crest" width="92" height="92" aria-hidden="true"></canvas>
+    <div class="brand">
+      <h1>The House That Hunts Back</h1>
+      <span id="nightLabel" class="ninelabel">Night I</span>
+    </div>
+    <div id="resources" class="resources" aria-label="house resources"></div>
+    <div id="objective" class="objective" data-prog=""></div>
+    <div id="clock" class="clock" aria-label="time until dawn"></div>
+    <div class="topbtns">
+      <div id="speed" class="speed" role="group" aria-label="speed and pause"></div>
+      <button id="btnUpgrades" title="Spend dread (U)">Upgrades</button>
+      <button id="btnLore" title="What the house remembers">Lore</button>
+      <button id="btnHelp" title="How to haunt (H)">Help</button>
+      <button id="btnSettings" title="Settings">Settings</button>
+      <button id="btnMute" title="Mute (M)" aria-pressed="false">Sound</button>
+    </div>
+  </header>
+  <main id="body">
+    <aside id="leftPanel" class="panel side" aria-label="house overview"></aside>
+    <section id="stage">
+      <canvas id="view" aria-label="floor plan of the house"></canvas>
+      <div id="focusBadge" class="focusbadge"></div>
+      <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+      <div id="captions" class="captions" role="status" aria-live="polite"></div>
+      <div id="tutorial" class="tutorial"></div>
+      <div id="hovercard" class="hovercard"></div>
+      <div id="legend" class="legend">
+        <span><i class="sw dark"></i>dark</span><span><i class="sw dread"></i>dread</span>
+        <span><i class="sw ev"></i>files</span><span><i class="sw salt"></i>salted</span>
+        <span><i class="sw seal"></i>sealed</span><span><i class="sw hear"></i>heard</span>
+      </div>
+    </section>
+    <aside id="rightPanel" class="panel side" aria-label="intruders and chronicle"></aside>
+  </main>
+  <footer id="powerbar" class="powerbar" aria-label="haunts"></footer>
+  <div id="modal" class="modal" role="dialog" aria-modal="true"></div>
+</div>
+<noscript><p style="padding:2rem;font:16px system-ui;color:#e8e2d2;background:#0a0d12">This game needs JavaScript. It runs entirely in your browser: no server, no account, no network calls.</p></noscript>
+<script>
+  /* top-bar buttons live outside the UI module so the page is never dead if a module fails */
+  addEventListener('DOMContentLoaded', () => {
+    const wire = (id, fn) => document.getElementById(id)?.addEventListener('click', fn);
+    wire('btnUpgrades', () => window.HOUSE?.ui?.openModal('upgrades'));
+    wire('btnLore', () => window.HOUSE?.ui?.openModal('lore'));
+    wire('btnHelp', () => window.HOUSE?.ui?.openModal('help'));
+    wire('btnSettings', () => window.HOUSE?.ui?.openModal('settings'));
+    wire('btnMute', e => {
+      const a = window.HOUSE?.audio; if (!a) return;
+      a.resume(); const m = !a.muted; a.setMuted(m);
+      e.currentTarget.setAttribute('aria-pressed', String(m));
+      e.currentTarget.textContent = m ? 'Muted' : 'Sound';
+      if (window.HOUSE.game) { window.HOUSE.game.meta.settings.muted = m; window.HOUSE.game.persist(); }
+    });
+  });
+</script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

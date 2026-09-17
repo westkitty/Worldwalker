@@ -14,9 +14,13 @@
     "test:adventure": "node scripts/adventure-contract.mjs",
     "test:system": "node scripts/system-contract.mjs",
     "test:uplift": "node scripts/uplift-contract.mjs",
+    "test:house": "node scripts/house-contract.mjs && node scripts/house-runtime.mjs && node scripts/house-dom.mjs",
+    "house:runtime": "node scripts/house-runtime.mjs",
+    "house:dom": "node scripts/house-dom.mjs",
+    "house:sim": "node scripts/house-sim.mjs",
     "smoke": "node scripts/smoke.mjs",
     "build:app": "zsh scripts/build-app.sh",
-    "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure && npm run test:system && npm run test:uplift"
+    "validate": "npm run check && npm run test:features && npm run test:model && npm run test:gamefeel && npm run test:immersion && npm run test:presence && npm run test:adventure && npm run test:system && npm run test:uplift && npm run test:house"
   },
   "engines": {
     "node": ">=20"

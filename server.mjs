@@ -369,6 +369,7 @@ async function serveStatic(req, res, url) {
   let rel;
   try {
     rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
+    if (rel.endsWith('/')) rel += 'index.html';
   } catch {
     res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8', 'x-content-type-options': 'nosniff' });
     return res.end('Bad Request');
