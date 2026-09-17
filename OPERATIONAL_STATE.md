@@ -26,6 +26,11 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - v0.18 adaptive score, cinematic camera, quest tracking, weather/time atmosphere and World Echoes remain intact.
 - Production art remains local under `public/assets/runtime/`; normal play does not depend on Drive availability.
 
+## Companion games on this server
+Two self-contained browser games are served alongside the Worldwalker JRPG. Neither is part of the Worldwalker simulation, neither reads or mutates the five source projects, and both are plain ES modules with no build step and no runtime dependencies:
+- `public/house/` — The House That Hunts Back (`/house/`), a reverse-horror strategy game in which the player is the haunted house. Verified by `npm run test:house` (28 simulation-contract tests and 40 runtime checks, plus a real-DOM check that self-skips when the optional `jsdom` dev package is absent; part of `npm run validate`). See `public/house/README.md`.
+- `public/blackbox/` — Black Box Aquarium (`/blackbox/`), a systemic alien ecosystem simulation. Verified by `node scripts/validate-aquarium.mjs`. See `public/blackbox/EVIDENCE.md`.
+
 ## Active invariants
 1. Source projects are read-only.
 2. Unknown remains unknown.
@@ -50,7 +55,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Representative visual QA: FAIL for production promotion — `player_downleft_0.png` is materially lower-detail than the established traveler, and `portrait_hero_neutral_blink.png` is identity/style-inconsistent with the established hero portrait.
 - Production validation after candidate rejection: `npm run validate` PASS, `npm run smoke` PASS, and `git diff --check` PASS.
 - Package version: `0.29.0`.
-- `npm run validate`: PASS (all 9 test suites: check, features, model, gamefeel, immersion, presence, adventure, system, uplift).
+- `npm run validate`: PASS (check plus the features, model, gamefeel, immersion, presence, adventure, system, uplift and house suites; the house suite is the contract of the companion game described above).
 - Feature contract: 20/20 PASS.
 - Evidence/model contract: PASS.
 - Game-feel contract: PASS.

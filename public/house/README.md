@@ -55,7 +55,7 @@ public/house/
     main.js               boot, input (mouse/keys/gamepad), RAF loop, autosave
 scripts/
   house-sim.mjs           headless night runner: node scripts/house-sim.mjs --night=5 --haunt
-  house-contract.mjs      26 acceptance tests against the real sim
+  house-contract.mjs      28 acceptance tests against the real sim
   house-runtime.mjs       40 checks that drive the real renderer/audios/UI with fakes
   house-dom.mjs           14 checks in a real DOM (needs `npm i --no-save jsdom`, else self-skips)
 ```
@@ -82,5 +82,8 @@ node scripts/house-sim.mjs --night=3 --haunt --seconds=300
 
 The contract suite is the one to trust for gameplay: it asserts the map is walkable room to
 room, that every power changes the world in a perceivable way, that nobody can be left standing
-in place for 45 seconds with an unfinished goal, that fear lands differently per archetype, and
-that each of the six scenarios can be won or lost by several deliberately different strategies.
+in place for 45 seconds with an unfinished goal, that a crowd can never cancel a stride (the
+night-6 rescue once deadlocked in the linen closet that way), that every intruder-driven
+objective still completes in bounded time when the house does nothing at all, that fear lands
+differently per archetype, and that each of the six scenarios can be won or lost by several
+deliberately different strategies.

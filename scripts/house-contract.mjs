@@ -3,7 +3,7 @@
    node scripts/house-contract.mjs --only=fears   (subset)         */
 import { readFileSync } from 'node:fs';
 import { Game, DEFAULT_META } from '../public/house/js/sim/game.js';
-import { memoryStorage as mem } from './house-sim.mjs';
+import { memoryStorage as mem, runNight } from './house-sim.mjs';
 import { buildWorld, findRoute, spawnStimulus, doorUsable } from '../public/house/js/sim/world.js';
 import { SCENARIOS, UPGRADES } from '../public/house/js/data/scenarios.js';
 import { POWERS, POWER_BY_ID } from '../public/house/js/data/powers.js';
@@ -755,6 +755,79 @@ await T('no_one_stalls_forever', () => {
   }
   assert(!bad.length, bad.slice(0, 6).join(' | '));
   return `${SCENARIOS.length} nights x idle/haunt, ${watched} stall checks - nobody stuck 45s with a goal`;
+});
+
+await T('crowd_never_cancels_a_stride', () => {
+  /* the night-6 deadlock, directly: two rescuers crowded a third in the linen closet and the
+     old separation ran AFTER the walk, pushing them back about one stride per tick - so the
+     door was approached forever and never crossed. separation now runs before the walk,
+     averaged over neighbours and capped, which makes the invariant explicit: a shoulder can
+     slow a stride but can never cancel it. this test is that invariant. */
+  const g = newGame(5); /* the night-6 roster: the rescuers themselves */
+  const world = g.world;
+  const linen = world.rooms.linen;
+  const door = world.byId['d18_ubath_linen'];
+  assert(linen.w < 140, 'linen closet grew: the small-room shoulder cap no longer applies here');
+  const walker = g.group[0];
+  const allies = g.group.slice(); /* ai.js passes the whole group as the crowd */
+  const place = (w, x, y) => { w.x = x; w.y = y; w.room = 'linen'; w.floor = linen.floor; w.state = 'active'; w.freeze = 0; w.grabbed = 0; w.fear = 0; w.panic = 0; w.hurt = 0; w.action = null; };
+  const crowd = (wx, wy) => {
+    for (const w of g.group) place(w, wx + 30, wy);
+    /* worst case, as the deadlock actually happened: the whole party piled into the closet
+       and wedged itself between the rescuer and the door */
+    const rest = g.group.slice(1);
+    rest.forEach((w, i) => place(w, wx + 12 + i * 1.5, wy + (i % 2 ? 3 : -3)));
+  };
+  /* phase 1 - plain goal on the far side of the crowd: every tick must make real progress */
+  crowd(linen.cx, linen.cy);
+  const goal = { x: door.bx, y: door.by };
+  walker.goal = { ...goal }; walker.queue = [];
+  let ticks = 0, minStride = Infinity;
+  while (walker.goal && ticks < 20 / DT) {
+    const before = Math.hypot(goal.x - walker.x, goal.y - walker.y);
+    travelTick(world, walker, DT, { allies });
+    const after = Math.hypot(goal.x - walker.x, goal.y - walker.y);
+    if (before > 13.5) { /* above arrival radius: the stride must land */
+      const net = before - after;
+      minStride = Math.min(minStride, net);
+      assert(net > 0.05, `tick ${ticks}: the crowd cancelled the stride (${before.toFixed(2)} -> ${after.toFixed(2)})`);
+    }
+    ticks++;
+  }
+  assert(!walker.goal, `walker never reached the door waypoint (${ticks} ticks, still ${Math.hypot(goal.x - walker.x, goal.y - walker.y).toFixed(1)} away)`);
+  /* phase 2 - the real thing: navigate() to ubath and cross the door under crowd pressure */
+  crowd(linen.cx, linen.cy);
+  assert(navigate(world, walker, 'ubath', { x: world.rooms.ubath.cx, y: world.rooms.ubath.cy }), 'no route from linen to ubath');
+  let crossed = 0;
+  for (let i = 0; i < 12 / DT && !crossed; i++) { travelTick(world, walker, DT, { allies }); if (walker.room === 'ubath') crossed = i; }
+  assert(crossed, 'the rescuer never crossed the linen door under crowd pressure');
+  return `worst net stride ${minStride.toFixed(2)}u/tick through the whole party, door crossed in ${(crossed / 20).toFixed(1)}s`;
+});
+
+await T('objectives_finish_when_unopposed', () => {
+  /* when the house does nothing at all, every intruder-driven objective must still complete
+     in bounded time. the night-6 rescue once deadlocked in the linen closet and night 3's
+     thieves once drifted until dawn over a loot-key mismatch - both shipped as "works", both
+     only ever showed up as a night that never ends. evidence nights (2 and 5) are exempt by
+     design: with nothing to photograph they legitimately dawdle to dawn. */
+  const seeds = [4242, 90210, 31337];
+  const bad = [];
+  const seen = {};
+  for (const n of [0, 2, 3, 5]) {
+    seen[n + 1] = [];
+    for (const s of seeds) {
+      const { game: g, err } = runNight({ night: n, seed: s, seconds: 400 });
+      assert(!err, `night ${n + 1} seed ${s} threw: ${err && err.message}`);
+      const t = Math.round(g.t), kind = g.outcome?.kind;
+      seen[n + 1].push(t);
+      if (kind !== 'objective' || t > 150) bad.push(`night ${n + 1} seed ${s}: ${kind} at t=${t}`);
+      if (n === 5 && !g.objective.rescueDone) bad.push(`night 6 seed ${s}: objective complete without the rescue (${kind} at t=${t})`);
+      if (n === 2 && !(g.objective.progress >= 1)) bad.push(`night 3 seed ${s}: objective complete without any loot secured`);
+    }
+  }
+  assert(!bad.length, bad.slice(0, 4).join(' | '));
+  return `nights 1/3/4/6 x ${seeds.length} seeds, unopposed, all objective: ` +
+    [1, 3, 4, 6].map(n => `n${n}≤${Math.max(...seen[n])}s`).join(' ');
 });
 
 await T('ai_contract_members_exist', () => {
