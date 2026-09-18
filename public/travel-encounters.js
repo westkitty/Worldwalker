@@ -12,7 +12,9 @@ export function encounterFor(game,seen={}){
   const h=new Date().getHours();
   const timeGreeting=h<6?'Night travels carry sharp winds.':h<12?'Fair morning along the trail.':h<18?'The afternoon sun casts long road shadows.':'Evening falls across the boundary.';
   const fact=q?`${q.title} remains ${String(q.status).toUpperCase()}. ${q.detail}`:`No unresolved source-backed quest is recorded for ${p.name}.`;
+  const sig=p.workSignals||{};
+  const gitFact=p.git?(sig.changedFiles?`The source worktree exposes ${sig.changedFiles} changed path${sig.changedFiles===1?'':'s'} on ${p.git.branch||'a detached branch'}.`:sig.ahead||sig.behind?`The checked-out branch is ${sig.ahead||0} ahead and ${sig.behind||0} behind its recorded upstream.`:`The checked-out worktree is clean${p.git.branch?` on ${p.git.branch}`:''}.`):'No Git repository telemetry is exposed for this project.';
   const speaker=(seen[`${p.id}:first`] ? altRoleFor[p.id] : roleFor[p.id]) || 'Road Chronicler';
-  return {key,project:p,speaker,portrait:'portrait_chronicler.png',lines:[`${timeGreeting} A traveler on the road from ${p.name} slows when they see you.`,conditionLine[p.condition]||`Worldwalker reads this place as ${String(p.condition||'unknown').toUpperCase()}.`,fact,'The encounter is Worldwalker fiction wrapped around source-backed facts.']};
+  return {key,project:p,speaker,portrait:'portrait_chronicler.png',lines:[`${timeGreeting} A traveler on the road from ${p.name} slows when they see you.`,conditionLine[p.condition]||`Worldwalker reads this place as ${String(p.condition||'unknown').toUpperCase()}.`,fact,gitFact,'The encounter is Worldwalker fiction wrapped around source-backed facts.']};
 }
 

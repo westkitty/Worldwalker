@@ -111,15 +111,29 @@ async function gitInfo(root) {
   if (!await exists(path.join(root, '.git'))) return null;
   try {
     const opts = { timeout: 3500 };
-    const [branch, log, status, remote] = await Promise.all([
+    const [branch, log, status, remote, upstream] = await Promise.all([
       exec('git', ['-C', root, 'branch', '--show-current'], opts),
       exec('git', ['-C', root, 'log', '-12', '--date=iso-strict', '--pretty=format:%h|%ad|%s'], opts),
       exec('git', ['-C', root, 'status', '--porcelain=v1'], opts),
-      exec('git', ['-C', root, 'remote', 'get-url', 'origin'], opts).catch(() => ({ stdout: '' }))
+      exec('git', ['-C', root, 'remote', 'get-url', 'origin'], opts).catch(() => ({ stdout: '' })),
+      exec('git', ['-C', root, 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{upstream}'], opts).catch(() => ({ stdout: '' }))
     ]);
+    const upstreamName = upstream.stdout.trim();
+    let ahead = null, behind = null;
+    if (upstreamName) {
+      const counts = await exec('git', ['-C', root, 'rev-list', '--left-right', '--count', 'HEAD...@{upstream}'], opts).catch(() => ({ stdout: '' }));
+      const [a, b] = counts.stdout.trim().split(/\s+/).map(Number);
+      ahead = Number.isFinite(a) ? a : null;
+      behind = Number.isFinite(b) ? b : null;
+    }
+    const changedFiles = status.stdout.split('\n').filter(Boolean).length;
     return {
       branch: branch.stdout.trim(),
-      dirty: Boolean(status.stdout.trim()),
+      dirty: changedFiles > 0,
+      changedFiles,
+      upstream: upstreamName || null,
+      ahead,
+      behind,
       remote: remote.stdout.trim(),
       commits: log.stdout.split('\n').filter(Boolean).map(line => {
         const [h, date, ...s] = line.split('|');
@@ -210,6 +224,17 @@ async function projectSnapshot(p) {
   const artifacts = present ? await recentArtifacts(p.root) : [];
   const tags = present ? await techTags(p.root) : [];
   const condition = conditionFor(p, present, git);
+  const unresolvedQuests = p.quests.filter(q => !['sealed', 'verified', 'closed'].includes(q.status));
+  const workSignals = {
+    unresolvedQuests: unresolvedQuests.length,
+    blockedQuests: unresolvedQuests.filter(q => q.status === 'blocked').length,
+    deferredQuests: unresolvedQuests.filter(q => q.status === 'deferred').length,
+    changedFiles: git?.changedFiles ?? null,
+    upstream: git?.upstream ?? null,
+    ahead: git?.ahead ?? null,
+    behind: git?.behind ?? null,
+    latestCommitAt: git?.commits?.[0]?.date || null
+  };
   const digest = hash(JSON.stringify({
     present,
     modified: stat?.mtime?.toISOString() || null,
@@ -227,7 +252,8 @@ async function projectSnapshot(p) {
     techTags: tags,
     condition,
     digest,
-    stateLedgerPresent
+    stateLedgerPresent,
+    workSignals
   };
 }
 

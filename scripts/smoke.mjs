@@ -78,6 +78,12 @@ for (const id of ['starsilk', 'screen-weasels', 'atlas', 'dash', 'orbital']) {
   assert.ok(p);
   assert.equal(typeof p.digest, 'string');
   assert.ok(p.condition);
+  assert.ok(p.workSignals && Number.isInteger(p.workSignals.unresolvedQuests));
+  if (p.git) {
+    assert.ok(Number.isInteger(p.git.changedFiles));
+    assert.ok(p.git.ahead === null || Number.isInteger(p.git.ahead));
+    assert.ok(p.git.behind === null || Number.isInteger(p.git.behind));
+  }
   assert.ok(Array.isArray(p.techTags));
   assert.ok(p.landmark);
   assert.ok(p.interior);

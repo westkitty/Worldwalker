@@ -269,12 +269,27 @@ function interact(){
   if(near.type==='guide')return guidePanel(near.project);
   if(near.type==='resident')return residentPanel(near.project,near.name);
   if(near.type==='waystone')return waystonePanel(near.project);
+  if(near.type==='project-beacon')return projectBeaconPanel(near.project);
   if(near.type==='echo')return worldEchoPanel(near);
   if(near.type==='signpost')return signpostPanel(near);
   if(near.type==='bulletin')return bulletinPanel(near);
   if(near.type==='ferry')return ferryPanel(near);
   if(near.type==='prop')return inspectInteriorProp(near);
   if(near.type==='station')return useStation(near);
+}
+function projectBeaconPanel(p){
+  const g=p.git,s=p.workSignals||{},latest=g?.commits?.[0],unresolved=(p.quests||[]).filter(q=>!['sealed','verified','closed'].includes(q.status));
+  const divergence=g&&s.ahead!==null&&s.behind!==null?`ahead ${s.ahead}, behind ${s.behind}`:'no upstream comparison exposed';
+  panelOpen(`<p class="eyebrow">PROJECT BEACON · READ-ONLY SOURCE TELEMETRY</p><h2>${esc(p.name)}</h2>${statusTags(p)}
+  <p>This beacon reports observed repository state. It does not score the project, decide whether work is good or mutate the source.</p>
+  <div class="cards">
+    <article class="card"><b>WORKTREE</b><small>${g?esc(g.branch||'detached'):'NO GIT TELEMETRY'}</small><p>${g?(s.changedFiles?`${s.changedFiles} changed path${s.changedFiles===1?'':'s'} currently visible.`:'No uncommitted paths are visible.'):'No Git repository telemetry is exposed.'}</p></article>
+    <article class="card"><b>UPSTREAM</b><small>${esc(g?.upstream||'UNRECORDED')}</small><p>${esc(divergence)}</p></article>
+    <article class="card"><b>OPEN SOURCE-BACKED WORK</b><small>${unresolved.length} unresolved quest${unresolved.length===1?'':'s'}</small><p>${unresolved.length?unresolved.map(q=>esc(q.title)).join(' · '):'Worldwalker has no unresolved source-backed quest recorded here.'}</p></article>
+    <article class="card"><b>LATEST RECORDED COMMIT</b><small>${latest?esc(latest.hash):'NONE'}</small><p>${latest?esc(latest.subject):'No commit history exposed.'}</p></article>
+  </div>
+  <div class="dialogue-actions"><button class="primary" id="beaconQuests">OPEN QUEST BOARD</button><button class="primary" id="beaconHistory">WALK CHRONICLE</button><button class="primary" id="beaconProject">PROJECT DOSSIER</button></div>`);
+  const q=$('#beaconQuests'),h=$('#beaconHistory'),d=$('#beaconProject');if(q)q.onclick=()=>projectQuestPanel(p);if(h)h.onclick=()=>{closePanel();enterChronicle()};if(d)d.onclick=()=>showProject(p);
 }
 function signpostPanel(s){
   showDialogue({
@@ -621,12 +636,14 @@ function mapPanel(mode=null){
           <article class="card">
             <b>${esc(p.name)}</b>
             <small>${esc(p.landmark)} · CONDITION: ${esc((p.condition||'unknown').toUpperCase())}</small>
-            <p>${p.git?`Branch: <code>${esc(p.git.branch)}</code> · Commit: <code>${esc(p.git.commits?.[0]?.hash||'none')}</code>`:'No git repository exposed.'}</p>
+            <p>${p.git?`Branch: <code>${esc(p.git.branch)}</code> · Commit: <code>${esc(p.git.commits?.[0]?.hash||'none')}</code> · Changed paths: <b>${p.workSignals?.changedFiles??0}</b> · Upstream: <b>${p.workSignals?.ahead??'?'}↑ / ${p.workSignals?.behind??'?'}↓</b>`:'No git repository exposed.'}</p>
+            <button class="travel" data-beacon="${esc(p.id)}">◇ READ PROJECT BEACON</button>
           </article>
         `).join('')}
       </div>
     `);
     body.querySelectorAll('[data-map-mode]').forEach(b=>b.onclick=()=>mapPanel(b.dataset.mapMode));
+    body.querySelectorAll('[data-beacon]').forEach(b=>b.onclick=()=>{const p=projectOf(b.dataset.beacon);if(p)projectBeaconPanel(p)});
     return;
   }
   
@@ -725,6 +742,7 @@ function mapPanel(mode=null){
         <article class="card">
           <b>${esc(p.name)}</b>
           <small>${state.waystones[p.id]?'WAYSTONE ATTUNED':state.visited[p.id]?'LANDMARK KNOWN':'UNVISITED'} · ${esc((p.condition||'unknown').toUpperCase())}</small>
+          <button class="travel" data-beacon="${p.id}">◇ READ PROJECT BEACON</button>
           <button class="travel" data-travel="${p.id}" ${state.waystones[p.id]?'':'disabled'}>
             ⌖ ${state.waystones[p.id]?'FAST TRAVEL TO WAYSTONE':'UNATTUNED WAYSTONE'}
           </button>
@@ -734,6 +752,7 @@ function mapPanel(mode=null){
   `);
   
   body.querySelectorAll('[data-map-mode]').forEach(b=>b.onclick=()=>mapPanel(b.dataset.mapMode));
+  body.querySelectorAll('[data-beacon]').forEach(b=>b.onclick=()=>{const p=projectOf(b.dataset.beacon);if(p)projectBeaconPanel(p)});
   body.querySelectorAll('[data-survey]').forEach(b=>b.onclick=()=>{surveyTarget=b.dataset.survey;mapPanel('surveyor')});
   body.querySelectorAll('[data-travel]').forEach(b=>{
     b.onclick=()=>{

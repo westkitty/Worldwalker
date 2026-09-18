@@ -1,7 +1,7 @@
 # Operational State: Worldwalker
 
 Project ID: `worldwalker`
-State revision: 31
+State revision: 32
 Baseline: `0.29.0`
 State: `production-runtime-preserved-launcher-verified`
 
@@ -12,6 +12,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - **macOS Launcher Refresh**: `scripts/build-app.sh` now rebuilds `/Applications/Worldwalker.app`, ad-hoc signs the complete bundle, clears quarantine metadata, refreshes LaunchServices, replaces the existing Worldwalker Dock tile, and restarts Dock so the installed icon launches the current `/Users/andrew/Worldwalker` checkout.
 - **Candidate Asset Bank Review**: A 362-asset source-plan build was audited against the verified production runtime. 91 filenames collide with established production artwork and remain untouched; the 271 generated-only files failed representative visual QA and were rejected from the repository runtime. Their source bank remains in Google Drive under `macbook/Worldwalker`. Production remains at the verified 104-PNG runtime baseline.
 - **Flagship WOW-01**: The **Grand Cartographic Expedition Atlas & Live Ecosystem Orrery** is integrated into the Worldwalker Atlas (`1` / Map dock / waystones). Includes topographic elevation contours, interactive Walking Route Surveyor (`calculateWalkingRoute`) computing real distances, leagues, footsteps, and river navigation, and the cosmic **Ecosystem Orrery** visualizing the 5 source projects orbiting the Central Meridian with live Git branch/commit telemetry and condition spectra.
+- **Project Beacons**: Each monitored settlement now exposes a physical read-only Project Beacon, also reachable from Atlas/Orrery project cards. The beacon reports observed branch, changed-path count, recorded upstream ahead/behind state, unresolved source-backed quests and latest commit evidence. Road encounters may quote the same Git facts. These signals remain descriptive and never become a project score, acceptance claim or source mutation.
 - **Gameplay Traversal & Navigation**: Added river stepping stones for pedestrian crossings, two-way river cable raft ferries (`RIVER_FERRY`), directional overworld signposts (`OVERWORLD_SIGNPOSTS`), settlement bulletin boards (`SETTLEMENT_BULLETINS`), and a high-speed sprint-hop stride dash.
 - **Interactive Tools & Audio**: Added Jukebox Studio (`J`) for auditioning regional themes and acoustic stingers, Expedition Postcard Snapshot tool (`P`), Technology Matrix viewer (`FEAT-03`), and Exploration Milestones (`FEAT-15`) celebrating genuine cartographic discovery.
 - **QOL & HUD Uplift**: Quick quest cycling (`T`), compass overlay toggle (`O`), notification dispatch drawer (`L`), multi-toast notification stack, F3 performance diagnostics HUD, and dock hotkeys (`1` through `8`).
@@ -61,6 +62,7 @@ Worldwalker is a local-first SNES/JRPG spatial interface over Andrew's real proj
 - Uplift contract: 101/101 PASS on docs/IMPROVEMENT_LEDGER.md count integrity (20 UI/UX, 20 Gameplay, 20 Backend, 20 QOL, 20 Features, 1 WOW-ME) and functional wiring.
 - Bugsweep audit: 10/10 edge-case defects resolved (input keydown isolation, dialogue number selection, ferry target destination fallback, bulletin noticeboard resolution, overworld pin rendering, topbar weather dynamic binding, F3 diagnostics dynamic HUD, surveyor target fallback, dialogue-art codex collision guard, and zero-distance route calculation).
 - `npm run smoke`: PASS with dual-mode live-network and in-process request verification.
+- Project Beacon regression coverage: PASS — project snapshot exposes `workSignals`; bounded Git telemetry includes changed-path count and upstream divergence; Atlas/Orrery beacon access, physical settlement beacon interaction and road-encounter Git facts are contract-covered.
 - Live HTTP delivery: `/`, `/app.js`, `/travel-encounters.js`, `/dialogue.js` and `/styles.css` all return 200.
 - Live shell contains `regionCard`; served app contains `journeyRecapPanel`.
 - Live server: `http://127.0.0.1:5179`.

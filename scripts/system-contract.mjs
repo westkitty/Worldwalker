@@ -93,9 +93,13 @@ assert.match(serverCode, /cachedSnapshotAt/, 'snapshot TTL caching implemented')
 assert.match(serverCode, /timeout.*3500/, 'git timeout guard implemented');
 assert.match(serverCode, /decodeURIComponent/, 'URL decode for spaces implemented');
 assert.match(serverCode, /nosniff/, 'nosniff header implemented');
+assert.match(serverCode, /changedFiles/, 'project snapshots expose changed-file count');
+assert.match(serverCode, /HEAD\.\.\.\@\{upstream\}/, 'project snapshots compute bounded upstream divergence');
 
 // 5. Invariant check: strictly no XP or productivity scores
 const appCode = fs.readFileSync(new URL('../public/app.js', import.meta.url), 'utf8');
+assert.match(appCode, /function projectBeaconPanel/, 'read-only project beacon panel integrated');
+assert.match(appCode, /data-beacon/, 'Atlas and Orrery expose project beacon access');
 const modelCode = fs.readFileSync(new URL('../public/model.js', import.meta.url), 'utf8');
 const renderCode = fs.readFileSync(new URL('../public/render.js', import.meta.url), 'utf8');
 const audioCode = fs.readFileSync(new URL('../public/audio.js', import.meta.url), 'utf8');

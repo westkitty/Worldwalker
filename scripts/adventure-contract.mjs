@@ -19,6 +19,8 @@ assert.match(app,/function journeyRecapPanel/);
 assert.match(html,/id="resumeSummary"/);assert.match(app,/waystoneRest/);
 assert.match(html,/id="regionCard"/);assert.match(app,/function showRegionReveal/);
 assert.match(app,/SOURCE CONDITION/);
+assert.match(app,/project-beacon/);assert.match(app,/projectBeaconPanel/);
+assert.match(encounters,/gitFact/);assert.match(encounters,/changed path/);
 assert.doesNotMatch(app,/productivityScore|playerLevel|experiencePoints|\bxp\s*:/i);
 globalThis.Image=class{constructor(){this.complete=false;this.naturalWidth=0;this.decoding='';this.src=''}};
 const { interactionTargets } = await import('../public/render.js');

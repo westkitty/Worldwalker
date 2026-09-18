@@ -14,6 +14,7 @@ export function settlementInteractionNodes(game){
   const nodes=[];for(const p of game.projects){const s=SETTLEMENTS[p.id];if(!s)continue;
     s.residents.forEach((r,i)=>{const q=residentPosition(game,p,r,i);nodes.push({type:'resident',project:p,name:q.name,x:q.x,y:q.y,label:`TALK · ${i===0?(p.guide||'LOCAL RESIDENT'):'WANDERER'}`})});
     nodes.push({type:'waystone',project:p,x:p.x+7.1,y:p.y+6.4,label:`WAYSTONE · ${p.name}`});
+    nodes.push({type:'project-beacon',project:p,x:p.x-7.0,y:p.y+6.2,label:`PROJECT BEACON · ${p.name}`});
   }return nodes;
 }
 export function worldStructureBlocked(game,x,y){
@@ -38,6 +39,9 @@ export function drawSettlement(ctx,game,p){
     ctx.fillStyle='rgba(246,198,91,0.18)';ctx.beginPath();ctx.arc(sx,sy-6,16,0,Math.PI*2);ctx.fill();
   }
   drawAsset(ctx,'fx_waystone.png',sx-14,sy-22,28,32,p.condition==='unknown'?.42:.9);
+  const [bx,by]=w2s(p.x-7.0,p.y+6.2,cx,cy,game.canvas),sig=p.workSignals||{},pulse=.5+.5*Math.sin(game.now*.004+p.x);
+  const beaconTone=(sig.behind||0)>0?'#e97a72':(sig.changedFiles||0)>0?'#f2c460':(sig.ahead||0)>0?'#75d9a1':'#78b9e8';
+  ctx.save();ctx.translate(bx+8,by+6);ctx.rotate(Math.PI/4);ctx.fillStyle=beaconTone;ctx.globalAlpha=.68+.25*pulse;ctx.fillRect(-6,-6,12,12);ctx.strokeStyle='#fff9';ctx.strokeRect(-8,-8,16,16);ctx.restore();
 
   const t=game.now*.001;ctx.save();
   if(p.condition==='blocked'){
